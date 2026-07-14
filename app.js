@@ -1,10 +1,11 @@
 const express = require('express');
 const mysql = require('mysql2');
-
-
 const flash = require('connect-flash');
 
 const app = express();
+
+// Set EJS as the view engine (THIS IS THE FIX)
+app.set('view engine', 'ejs');
 
 // Database connection
 const db = mysql.createConnection({
@@ -27,11 +28,10 @@ app.use(express.static('public'));
 
 // PATHS GO DOWN HERE //
 app.get('/', (req, res) => {
-    res.send('Hello World!');
+    res.render('index');
 });
-
-
 // END OF PATHS // 
+
 // Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
