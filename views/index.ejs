@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Name - Travel the World</title>
+    <title>VividVoyage - Travel the World</title>
     <!-- Using Nunito for a warm, rounded, and highly readable aesthetic -->
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
@@ -28,31 +28,7 @@
             color: var(--dark-text);
         }
 
-        /* --- NAVBAR --- */
-        header {
-            position: absolute;
-            top: 0;
-            width: 100%;
-            padding: 20px 50px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 10;
-        }
-
-        .logo {
-            font-size: 28px;
-            font-weight: 800;
-            color: var(--white);
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.4);
-            letter-spacing: 1px;
-        }
-
-        .auth-buttons {
-            display: flex;
-            gap: 15px;
-        }
-
+        /* --- BUTTON STYLES (Used for the Hero Section) --- */
         .btn {
             padding: 12px 28px;
             font-size: 16px;
@@ -62,18 +38,7 @@
             transition: all 0.3s ease;
             cursor: pointer;
             border: none;
-        }
-
-        .btn-login {
-            background-color: rgba(255, 255, 255, 0.2);
-            color: var(--white);
-            backdrop-filter: blur(5px);
-            border: 2px solid var(--white);
-        }
-
-        .btn-login:hover {
-            background-color: var(--white);
-            color: var(--teal);
+            display: inline-block;
         }
 
         .btn-register {
@@ -90,7 +55,8 @@
         /* --- HERO CAROUSEL SECTION --- */
         .hero {
             position: relative;
-            height: 100vh;
+            /* Adjusted slightly so it looks perfect under the new white navbar */
+            height: calc(100vh - 75px); 
             width: 100%;
             overflow: hidden;
             display: flex;
@@ -99,7 +65,7 @@
             text-align: center;
         }
 
-        /* [UPDATE] The background image containers now animate opacity instead of background-image to prevent stretching */
+        /* The background image containers now animate opacity */
         .carousel-bg {
             position: absolute;
             top: 0;
@@ -108,12 +74,12 @@
             height: 100%;
             background-size: cover;
             background-position: center;
-            transition: opacity 1.5s ease-in-out; /* Smooth fade effect */
+            transition: opacity 1.5s ease-in-out; 
             z-index: 1;
-            opacity: 0; /* Hidden by default */
+            opacity: 0; 
         }
 
-        /* [UPDATE] This class makes the currently active layer visible */
+        /* This class makes the currently active layer visible */
         .carousel-bg.active {
             opacity: 1; 
         }
@@ -211,18 +177,12 @@
 </head>
 <body>
 
-    <!-- Header / Navbar -->
-    <header>
-        <div class="logo">Your Name</div>
-        <div class="auth-buttons">
-            <a href="/login" class="btn btn-login">Login</a>
-            <a href="/register" class="btn btn-register">Register Now</a>
-        </div>
-    </header>
+    <!-- Inject the navigation bar here -->
+    <%- include('partials/navbar') %>
 
     <!-- Hero Carousel -->
     <section class="hero">
-        <!-- [UPDATE] Two separate layers for the cross-fade effect. Layer 1 starts active. -->
+        <!-- Two separate layers for the cross-fade effect. Layer 1 starts active. -->
         <div class="carousel-bg active" id="carousel-layer-1"></div>
         <div class="carousel-bg" id="carousel-layer-2"></div>
         <div class="overlay"></div>
@@ -262,7 +222,7 @@
 
     <!-- Vanilla JS for the Randomized Carousel -->
     <script>
-        // [UPDATE] Adjusted array with fresh links (optimized to 1920px for fast loading), including bird's eye Tokyo
+        // Adjusted array with fresh links (optimized to 1920px for fast loading), including bird's eye Tokyo
         const images = [
             'https://images.unsplash.com/photo-1483347756197-71ef80e95f73?auto=format&fit=crop&w=1920&q=80', // Northern Lights
             'https://images.unsplash.com/photo-1603565816030-6b389eeb23cb?auto=format&fit=crop&w=1920&q=80', // Pyramid of Giza
@@ -271,7 +231,7 @@
             'https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?auto=format&fit=crop&w=1920&q=80'  // Swiss Alps
         ];
 
-        // [UPDATE] Preloads images in the background so there are no grey screens before the next image appears
+        // Preloads images in the background so there are no grey screens before the next image appears
         function preloadImages(imageArray) {
             imageArray.forEach(src => {
                 const img = new Image();
@@ -290,7 +250,7 @@
         // Execute preload
         preloadImages(images);
 
-        // [UPDATE] Grab both layers for the cross-fade animation
+        // Grab both layers for the cross-fade animation
         const layer1 = document.getElementById('carousel-layer-1');
         const layer2 = document.getElementById('carousel-layer-2');
         const randomizedImages = shuffleArray([...images]);
@@ -306,7 +266,7 @@
             currentIndex = (currentIndex + 1) % randomizedImages.length;
             const nextImage = `url('${randomizedImages[currentIndex]}')`;
 
-            // [UPDATE] Alternates loading the new image into the hidden layer, then toggles the .active class to fade it in
+            // Alternates loading the new image into the hidden layer, then toggles the .active class to fade it in
             if (showingLayer1) {
                 layer2.style.backgroundImage = nextImage;
                 layer2.classList.add('active');

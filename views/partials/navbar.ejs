@@ -1,0 +1,109 @@
+<!-- views/partials/navbar.ejs -->
+<nav class="travel-navbar">
+    <div class="nav-brand">
+        <!-- You can replace 'VividVoyage' with your finalized app name -->
+        <a href="/" class="brand-logo">VividVoyage</a>
+    </div>
+    
+    <ul class="nav-links">
+        <li><a href="/flights">Flights</a></li>
+        <li><a href="/hotels">Hotels</a></li>
+        <li><a href="/itineraries">Itineraries</a></li>
+        <li><a href="/reviews">Reviews</a></li>
+    </ul>
+    
+    <div class="nav-auth">
+        <a href="/login" class="nav-btn btn-login">Sign In</a>
+        <a href="/register" class="nav-btn btn-signup">Sign Up</a>
+    </div>
+</nav>
+
+<style>
+    /* Ensure the font is loaded in case it isn't on the parent page */
+    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800&display=swap');
+
+    .travel-navbar {
+        font-family: 'Nunito', sans-serif;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 50px;
+        background-color: #FFFFFF; /* White */
+        box-shadow: 0 4px 15px rgba(153, 189, 188, 0.15); /* Soft Morningside Teal shadow */
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+    }
+
+    .brand-logo {
+        font-size: 26px;
+        font-weight: 800;
+        color: #99BDBC; /* Morningside Teal */
+        text-decoration: none;
+        letter-spacing: 1px;
+        transition: opacity 0.3s ease;
+    }
+
+    .brand-logo:hover {
+        opacity: 0.8;
+    }
+
+    .nav-links {
+        list-style: none;
+        display: flex;
+        gap: 35px;
+        margin: 0;
+        padding: 0;
+    }
+
+    .nav-links li a {
+        text-decoration: none;
+        color: #A2BFCE; /* Cadet Grey */
+        font-weight: 600;
+        font-size: 16px;
+        transition: color 0.3s ease;
+    }
+
+    .nav-links li a:hover {
+        color: #E2C1AA; /* Desert Sand on hover for a warm, sandy feel */
+    }
+
+    .nav-auth {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+    }
+
+    .nav-btn {
+        padding: 10px 24px;
+        font-size: 15px;
+        font-weight: 600;
+        text-decoration: none;
+        border-radius: 25px; /* Smooth rounded edges for comfort */
+        transition: all 0.3s ease;
+    }
+
+    .btn-login {
+        color: #99BDBC; /* Morningside Teal */
+        background-color: transparent;
+        border: 2px solid #99BDBC;
+    }
+
+    .btn-login:hover {
+        background-color: #99BDBC;
+        color: #FFFFFF;
+    }
+
+    .btn-signup {
+        background-color: #E2C1AA; /* Desert Sand */
+        color: #FFFFFF;
+        border: 2px solid #E2C1AA;
+        box-shadow: 0 4px 10px rgba(226, 193, 170, 0.3);
+    }
+
+    .btn-signup:hover {
+        background-color: #d1b099; /* Slightly darker sand */
+        border-color: #d1b099;
+        transform: translateY(-2px);
+    }
+</style>
