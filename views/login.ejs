@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In - VividVoyage</title>
+    <!-- Imports your chosen Nunito Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* --- COLOR SCHEME & VARIABLES --- */
+        :root {
+            --white: #FFFFFF;
+            --peach: #E2C1AA; /* Desert Sand */
+            --teal: #99BDBC;  /* Morningside Teal */
+            --blue: #A2BFCE;  /* Cadet Grey */
+            --dark-text: #2C3E50;
+            --light-bg: #F8F9FA;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Nunito', sans-serif;
+        }
+
+        /* Uses the exact same relaxing background pattern as the register page */
+        body {
+            background-color: var(--light-bg);
+            color: var(--dark-text);
+            background-image: radial-gradient(var(--blue) 0.5px, transparent 0.5px), radial-gradient(var(--blue) 0.5px, var(--light-bg) 0.5px);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            opacity: 0.9;
+        }
+
+        /* --- THE LOGIN CARD --- */
+        /* This centers the form on the screen and styles it like a beautiful card */
+        .login-card {
+            max-width: 450px;
+            margin: 100px auto;
+            background-color: var(--white);
+            padding: 50px 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(153, 189, 188, 0.2); 
+            border: 1px solid rgba(162, 191, 206, 0.3);
+            text-align: center;
+        }
+
+        .login-card h1 {
+            color: var(--teal);
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .login-card p {
+            color: #888;
+            font-size: 15px;
+            margin-bottom: 30px;
+        }
+
+        /* --- FLASH MESSAGES (Success & Error Boxes) --- */
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .alert-error {
+            background-color: #ffe6e6;
+            color: #cc0000;
+        }
+        .alert-success {
+            background-color: #e6ffed;
+            color: #009933;
+        }
+
+        /* --- FORM ELEMENTS --- */
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            color: var(--teal);
+            font-weight: 800;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid var(--blue); 
+            border-radius: 12px;
+            font-size: 16px;
+            color: var(--dark-text);
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--teal); 
+            box-shadow: 0 0 8px rgba(153, 189, 188, 0.3);
+        }
+
+        /* --- SUBMIT BUTTON --- */
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--peach); 
+            color: var(--white);
+            font-size: 18px;
+            font-weight: 800;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+            box-shadow: 0 4px 15px rgba(226, 193, 170, 0.5);
+        }
+
+        .btn-submit:hover {
+            background-color: #d1b099;
+            transform: translateY(-2px);
+        }
+
+        .register-link {
+            display: block;
+            margin-top: 25px;
+            color: var(--blue);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .register-link:hover {
+            color: var(--teal);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- This pulls in your universal navigation bar -->
+    <%- include('partials/navbar') %>
+
+    <!-- This is the "Card" you requested -->
+    <div class="login-card">
+        <h1>Welcome Back</h1>
+        <p>Sign in to continue your journey.</p>
+
+        <!-- Dynamic Error Messages (e.g., "Invalid password") -->
+        <% if (errors && errors.length > 0) { %>
+            <div class="alert alert-error">
+                <% errors.forEach(function(error) { %>
+                    <p><%= error %></p>
+                <% }); %>
+            </div>
+        <% } %>
+
+        <!-- Dynamic Success Messages (e.g., "Registration successful!") -->
+        <% if (messages && messages.length > 0) { %>
+            <div class="alert alert-success">
+                <% messages.forEach(function(msg) { %>
+                    <p><%= msg %></p>
+                <% }); %>
+            </div>
+        <% } %>
+
+        <!-- The actual form that connects to app.js -->
+        <!-- Action="/login" tells it to send the data to your app.post('/login') route -->
+        <form action="/login" method="POST">
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <!-- name="email" is crucial. This is how req.body.email finds the data in app.js -->
+                <input type="email" id="email" name="email" class="form-control" placeholder="hello@example.com" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <!-- name="password" links to req.body.password in app.js -->
+                <input type="password" id="password" name="password" class="form-control" placeholder="Enter your password" required>
+            </div>
+            
+            <button type="submit" class="btn-submit">Sign In</button>
+        </form>
+        
+        <a href="/register" class="register-link">Don't have an account? Sign up here.</a>
+    </div>
+
+</body>
+</html>

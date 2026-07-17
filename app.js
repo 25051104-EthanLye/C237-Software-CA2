@@ -1,13 +1,12 @@
 const express = require('express');
 const mysql = require('mysql2');
 const flash = require('connect-flash');
+const session = require('express-session');
 
 const app = express();
 
-// Set EJS as the view engine (THIS IS THE FIX)
 app.set('view engine', 'ejs');
 
-// Database connection
 const db = mysql.createConnection({
     host: 'c237-yewyih-mysql.mysql.database.azure.com',
     user: 'c237_006',
@@ -17,23 +16,125 @@ const db = mysql.createConnection({
 });
 
 db.connect((err) => {
-    if (err) {
-        throw err;
-    }
+    if (err) throw err;
     console.log('Connected to database');
 });
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static('public'));
 
-// PATHS GO DOWN HERE //
-app.get('/', (req, res) => {
-    res.render('index');
-});
-// END OF PATHS // 
+app.use(session({
+    secret: 'my_super_secret_key', 
+    resave: false,
+    saveUninitialized: false
+}));
 
-// Start the server
+app.use(flash());
+
+// --- REGISTRATION VALIDATION MIDDLEWARE ---
+const validateRegistration = (req, res, next) => {
+    const { username, email, password, contact } = req.body;
+
+    if (!username || !email || !password || !contact) {
+        req.flash('error', 'All fields are required.');
+        return res.render('register', { messages: req.flash('error'), formData: req.body });
+    }
+
+    if (password.length < 6) {
+        req.flash('error', 'Password must be at least 6 characters long.');
+        return res.render('register', { messages: req.flash('error'), formData: req.body });
+    }
+
+    next(); 
+};
+
+// --- PATHS --- //
+
+// 1. HOME ROUTE
+app.get('/', (req, res) => {
+    res.render('index', { 
+        user: req.session.user, 
+        messages: req.flash('success'),
+        errors: req.flash('error') // Catches failed login attempts to trigger the modal
+    });
+});
+
+// 2. REGISTER GET ROUTE
+app.get('/register', (req, res) => {
+    res.render('register', { messages: req.flash('error'), formData: {} });
+});
+
+// 3. REGISTER POST ROUTE
+app.post('/register', validateRegistration, (req, res) => {
+    const { username, email, password, contact } = req.body; 
+
+    const checkSql = 'SELECT * FROM users WHERE username = ? OR email = ?';
+    
+    db.query(checkSql, [username, email], (err, results) => {
+        if (err) throw err;
+
+        if (results.length > 0) {
+            let errorMsg = 'That account already exists.';
+            if (results[0].username === username) {
+                errorMsg = 'That username is already taken. Please choose another one.';
+            } else if (results[0].email === email) {
+                errorMsg = 'That email is already registered. Please log in instead.';
+            }
+
+            req.flash('error', errorMsg);
+            return res.render('register', { 
+                messages: req.flash('error'), 
+                formData: { username: '', email: '', contact } 
+            });
+        }
+
+        const insertSql = 'INSERT INTO users (username, email, contact, password, role, account_status) VALUES (?, ?, ?, SHA1(?), ?, ?)';
+        
+        db.query(insertSql, [username, email, contact, password, 'user', 'active'], (err, result) => {
+            if (err) throw err;
+            
+            console.log("New unique user created successfully!");
+            
+            // Sends the success message to the homepage so the modal instantly pops open!
+            req.flash('success', 'Registration successful! Please log in.');
+            res.redirect('/'); 
+        });
+    });
+});
+
+// 4. LOGIN POST ROUTE (Triggered by the Navbar Modal)
+app.post('/login', (req, res) => {
+    const { email, password } = req.body;
+    
+    if (!email || !password) {
+        req.flash('error', 'All fields are required.');
+        return res.redirect('/'); 
+    }
+    
+    const sql = 'SELECT * FROM users WHERE email = ? AND password = SHA1(?)';
+    db.query(sql, [email, password], (err, results) => {
+        if (err) throw err;
+        
+        if (results.length > 0) {
+            // Success! Create session and reload the page to display the profile button
+            req.session.user = results[0]; 
+            res.redirect('/'); 
+        } else {
+            // Failure! Redirect to home with an error, triggering the modal to pop open again
+            req.flash('error', 'Invalid email or password.');
+            res.redirect('/'); 
+        }
+    });
+});
+
+// 5. LOGOUT ROUTE
+app.get('/logout', (req, res) => {
+    req.session.destroy();
+    res.redirect('/');
+});
+
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`🚀 Server is running! Click here to open: http://localhost:${PORT}`);
 });

@@ -1,109 +1,161 @@
-<!-- views/partials/navbar.ejs -->
-<nav class="travel-navbar">
-    <div class="nav-brand">
-        <!-- You can replace 'VividVoyage' with your finalized app name -->
-        <a href="/" class="brand-logo">VividVoyage</a>
-    </div>
-    
-    <ul class="nav-links">
-        <li><a href="/flights">Flights</a></li>
-        <li><a href="/hotels">Hotels</a></li>
-        <li><a href="/itineraries">Itineraries</a></li>
-        <li><a href="/reviews">Reviews</a></li>
-    </ul>
-    
-    <div class="nav-auth">
-        <a href="/login" class="nav-btn btn-login">Sign In</a>
-        <a href="/register" class="nav-btn btn-signup">Sign Up</a>
-    </div>
-</nav>
+<% 
+    /* --- EJS VARIABLE SHIELD --- 
+       If a page loads without a user or flash messages, EJS will crash. 
+       This block intercepts the server data and provides safe defaults. */
+    const activeUser = typeof user !== 'undefined' ? user : null;
+    const loginErrors = typeof errors !== 'undefined' ? errors : [];
+    const successMsgs = typeof messages !== 'undefined' ? messages : [];
+%>
 
 <style>
-    /* Ensure the font is loaded in case it isn't on the parent page */
-    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800&display=swap');
+    /* --- PROFILE DROPDOWN (Hover to reveal menu) --- */
+    .profile-dropdown { position: relative; display: inline-block; }
+    
+    .profile-btn {
+        display: flex; align-items: center; gap: 12px;
+        background: rgba(255, 255, 255, 0.95); border: 2px solid var(--teal);
+        padding: 5px 15px 5px 5px; border-radius: 40px; cursor: pointer; transition: all 0.3s;
+    }
+    
+    .profile-btn:hover { background: var(--white); box-shadow: 0 5px 15px rgba(153, 189, 188, 0.3); }
+    .profile-pic { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; }
+    .profile-name { color: var(--teal); font-weight: 800; font-size: 16px; }
 
-    .travel-navbar {
-        font-family: 'Nunito', sans-serif;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 15px 50px;
-        background-color: #FFFFFF; /* White */
-        box-shadow: 0 4px 15px rgba(153, 189, 188, 0.15); /* Soft Morningside Teal shadow */
-        position: sticky;
-        top: 0;
-        z-index: 1000;
+    .dropdown-content {
+        display: none; position: absolute; right: 0; top: 110%;
+        background-color: var(--white); min-width: 160px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-radius: 15px; overflow: hidden;
+        z-index: 101; border: 1px solid rgba(162, 191, 206, 0.2);
     }
 
-    .brand-logo {
-        font-size: 26px;
-        font-weight: 800;
-        color: #99BDBC; /* Morningside Teal */
-        text-decoration: none;
-        letter-spacing: 1px;
-        transition: opacity 0.3s ease;
+    .profile-dropdown:hover .dropdown-content { display: block; animation: dropFade 0.2s ease-out forwards; }
+
+    @keyframes dropFade { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+    .dropdown-content a {
+        color: var(--dark-text); padding: 14px 20px; text-decoration: none;
+        display: block; font-weight: 600; font-size: 15px; transition: all 0.2s;
     }
 
-    .brand-logo:hover {
-        opacity: 0.8;
+    .dropdown-content a:hover { background-color: var(--light-bg); color: var(--teal); padding-left: 25px; }
+
+    /* --- LOGIN MODAL CSS --- */
+    .modal-overlay {
+        display: none; /* Crucial: Hidden by default! */
+        position: fixed; z-index: 9999; left: 0; top: 0;
+        width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); 
+        backdrop-filter: blur(5px); align-items: center; justify-content: center;
     }
 
-    .nav-links {
-        list-style: none;
-        display: flex;
-        gap: 35px;
-        margin: 0;
-        padding: 0;
+    .modal-card {
+        background-color: var(--white); padding: 40px; border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(153, 189, 188, 0.4); border: 1px solid rgba(162, 191, 206, 0.3);
+        width: 90%; max-width: 450px; text-align: center; position: relative; 
+        animation: dropIn 0.3s ease-out forwards;
     }
 
-    .nav-links li a {
-        text-decoration: none;
-        color: #A2BFCE; /* Cadet Grey */
-        font-weight: 600;
-        font-size: 16px;
-        transition: color 0.3s ease;
-    }
+    @keyframes dropIn { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-    .nav-links li a:hover {
-        color: #E2C1AA; /* Desert Sand on hover for a warm, sandy feel */
-    }
-
-    .nav-auth {
-        display: flex;
-        gap: 15px;
-        align-items: center;
-    }
-
-    .nav-btn {
-        padding: 10px 24px;
-        font-size: 15px;
-        font-weight: 600;
-        text-decoration: none;
-        border-radius: 25px; /* Smooth rounded edges for comfort */
-        transition: all 0.3s ease;
-    }
-
-    .btn-login {
-        color: #99BDBC; /* Morningside Teal */
-        background-color: transparent;
-        border: 2px solid #99BDBC;
-    }
-
-    .btn-login:hover {
-        background-color: #99BDBC;
-        color: #FFFFFF;
-    }
-
-    .btn-signup {
-        background-color: #E2C1AA; /* Desert Sand */
-        color: #FFFFFF;
-        border: 2px solid #E2C1AA;
-        box-shadow: 0 4px 10px rgba(226, 193, 170, 0.3);
-    }
-
-    .btn-signup:hover {
-        background-color: #d1b099; /* Slightly darker sand */
-        border-color: #d1b099;
-        transform: translateY(-2px);
-    }
+    .close-btn { position: absolute; top: 15px; right: 20px; font-size: 28px; font-weight: 800; color: var(--blue); cursor: pointer; transition: color 0.3s; }
+    .close-btn:hover { color: var(--teal); }
 </style>
+
+<!-- --- VISIBLE NAVBAR --- -->
+<header style="position: absolute; top: 0; left: 0; width: 100%; padding: 20px 50px; display: flex; justify-content: space-between; align-items: center; z-index: 100;">
+    <a href="/" style="text-decoration: none;">
+        <div class="logo" style="font-size: 28px; font-weight: 800; color: var(--teal);">VividVoyage</div>
+    </a>
+    
+    <div class="auth-buttons" style="display: flex; gap: 15px; align-items: center;">
+        
+        <% if (activeUser) { %>
+            <!-- LOGGED IN: Show Profile Dropdown -->
+            <div class="profile-dropdown">
+                <button class="profile-btn">
+                    <img src="https://ui-avatars.com/api/?name=<%= activeUser.username %>&background=99BDBC&color=fff&bold=true" alt="Profile" class="profile-pic">
+                    <span class="profile-name"><%= activeUser.username %></span>
+                </button>
+                <div class="dropdown-content">
+                    <a href="/profile">My Profile</a>
+                    <a href="/bookings">My Bookings</a>
+                    <hr style="margin: 0; border: none; border-top: 1px solid #eee;">
+                    <a href="/logout" style="color: #cc0000;">Sign Out</a>
+                </div>
+            </div>
+        <% } else { %>
+            <!-- LOGGED OUT: Show trigger buttons -->
+            <button onclick="openLoginModal()" class="btn" style="background: rgba(255,255,255,0.9); color: var(--teal); border: 2px solid var(--teal); padding: 10px 25px; border-radius: 30px; font-weight: 800; cursor: pointer;">Sign In</button>
+            <a href="/register" class="btn btn-register" style="padding: 12px 25px; border-radius: 30px; text-decoration: none; font-weight: 800;">Register Now</a>
+        <% } %>
+    </div>
+</header>
+
+<!-- --- HIDDEN MODAL OVERLAY --- -->
+<div id="loginModal" class="modal-overlay">
+    <div class="modal-card">
+        <span class="close-btn" onclick="closeLoginModal()">&times;</span>
+        <h1 style="color: var(--teal); font-size: 32px; font-weight: 800; margin-bottom: 10px;">Welcome Back</h1>
+        <p style="color: #888; margin-bottom: 25px;">Sign in to continue your journey.</p>
+
+        <!-- Dynamic Server Messages -->
+        <% if (loginErrors.length > 0) { %>
+            <div style="background-color: #ffe6e6; color: #cc0000; padding: 15px; border-radius: 10px; margin-bottom: 20px; font-weight: 600; font-size: 14px;">
+                <% loginErrors.forEach(function(error) { %> <p><%= error %></p> <% }); %>
+            </div>
+        <% } %>
+
+        <% if (successMsgs.length > 0) { %>
+            <div style="background-color: #e6ffed; color: #009933; padding: 15px; border-radius: 10px; margin-bottom: 20px; font-weight: 600; font-size: 14px;">
+                <% successMsgs.forEach(function(msg) { %> <p><%= msg %></p> <% }); %>
+            </div>
+        <% } %>
+
+        <form action="/login" method="POST" style="text-align: left;">
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 14px; color: var(--teal); font-weight: 800; margin-bottom: 8px; text-transform: uppercase;">Email Address</label>
+                <input type="email" name="email" placeholder="hello@example.com" required style="width: 100%; padding: 14px; border: 2px solid var(--blue); border-radius: 12px; font-size: 16px; outline: none; color: var(--dark-text);">
+            </div>
+            
+            <div style="margin-bottom: 25px;">
+                <label style="display: block; font-size: 14px; color: var(--teal); font-weight: 800; margin-bottom: 8px; text-transform: uppercase;">Password</label>
+                <input type="password" name="password" placeholder="Enter your password" required style="width: 100%; padding: 14px; border: 2px solid var(--blue); border-radius: 12px; font-size: 16px; outline: none; color: var(--dark-text);">
+            </div>
+            
+            <button type="submit" class="btn btn-register" style="width: 100%; padding: 14px; font-size: 18px; border-radius: 30px; border: none; cursor: pointer; background-color: var(--peach); color: white; font-weight: 800;">Sign In</button>
+        </form>
+    </div>
+</div>
+
+<!-- --- JAVASCRIPT --- -->
+<script>
+    // 1. Declare functions in the global scope so HTML can interact with them immediately
+    const loginModalElement = document.getElementById('loginModal');
+
+    function openLoginModal() {
+        if (loginModalElement) {
+            loginModalElement.style.display = 'flex';
+        }
+    }
+
+    function closeLoginModal() {
+        if (loginModalElement) {
+            loginModalElement.style.display = 'none';
+        }
+    }
+
+    // 2. Close modal if user clicks outside the white card
+    window.onclick = function(event) {
+        if (event.target === loginModalElement) {
+            closeLoginModal();
+        }
+    };
+
+    // Not an error: This is a feature to auto-open the login modal if there are server messages
+    // 3. EJS Injection: Auto-open if the server sent an error or success message
+    <% if (loginErrors.length > 0 || successMsgs.length > 0) { %>
+        // Uses a 100ms delay to guarantee the browser has finished painting the HTML
+        setTimeout(() => {
+            openLoginModal();
+        }, 100);
+    <% } %>
+</script>

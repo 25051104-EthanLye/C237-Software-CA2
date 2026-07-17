@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - VividVoyage</title>
+    <!-- Nunito Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* --- COLOR SCHEME & VARIABLES --- */
+        :root {
+            --white: #FFFFFF;
+            --peach: #E2C1AA; /* Desert Sand */
+            --teal: #99BDBC;  /* Morningside Teal */
+            --blue: #A2BFCE;  /* Cadet Grey */
+            --dark-text: #2C3E50;
+            --light-bg: #F8F9FA;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Nunito', sans-serif;
+        }
+
+        body {
+            background-color: var(--light-bg);
+            color: var(--dark-text);
+            /* A soft background pattern to give a holiday vibe */
+            background-image: radial-gradient(var(--blue) 0.5px, transparent 0.5px), radial-gradient(var(--blue) 0.5px, var(--light-bg) 0.5px);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            opacity: 0.9;
+        }
+
+        /* --- REGISTRATION CONTAINER --- */
+        .register-container {
+            max-width: 500px;
+            margin: 80px auto;
+            background-color: var(--white);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(153, 189, 188, 0.2); /* Soft Teal Shadow */
+            border: 1px solid rgba(162, 191, 206, 0.3);
+        }
+
+        .register-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .register-header h1 {
+            color: var(--teal);
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .register-header p {
+            color: #888;
+            font-size: 15px;
+        }
+
+        /* --- ERROR MESSAGES --- */
+        .alert-danger {
+            background-color: #ffe6e6;
+            color: #cc0000;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        /* --- FORM ELEMENTS --- */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            color: var(--teal);
+            font-weight: 800;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid var(--blue); /* Cadet Grey Border */
+            border-radius: 12px;
+            font-size: 16px;
+            color: var(--dark-text);
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--teal); /* Highlights in Teal when clicking */
+            box-shadow: 0 0 8px rgba(153, 189, 188, 0.3);
+        }
+
+        /* --- SUBMIT BUTTON --- */
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--peach); /* Desert Sand */
+            color: var(--white);
+            font-size: 18px;
+            font-weight: 800;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            box-shadow: 0 4px 15px rgba(226, 193, 170, 0.5);
+        }
+
+        .btn-submit:hover {
+            background-color: #d1b099;
+            transform: translateY(-2px);
+        }
+
+        .login-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: var(--blue);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .login-link:hover {
+            color: var(--teal);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Reusing your beautiful navigation bar -->
+    <%- include('partials/navbar') %>
+
+    <div class="register-container">
+        <div class="register-header">
+            <h1>Join VividVoyage</h1>
+            <p>Start planning your dream holiday today.</p>
+        </div>
+
+        <!-- Displays error messages if the email is taken -->
+        <% if (messages && messages.length > 0) { %>
+            <div class="alert-danger">
+                <% messages.forEach(function(message) { %>
+                    <p><%= message %></p>
+                <% }); %>
+            </div>
+        <% } %>
+
+        <form action="/register" method="POST">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <!-- Retains the user's input if the form fails so they don't have to re-type it -->
+                <input type="text" id="username" name="username" class="form-control" placeholder="Enter your username" required 
+                <% if (formData && formData.username) { %> value="<%= formData.username %>" <% } %>>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" class="form-control" placeholder="hello@example.com" required 
+                <% if (formData && formData.email) { %> value="<%= formData.email %>" <% } %>>
+            </div>
+
+            <div class="form-group">
+                <label for="contact">Contact Number</label>
+                <input type="text" id="contact" name="contact" class="form-control" placeholder="e.g. +65 9123 4567" required 
+                <% if (formData && formData.contact) { %> value="<%= formData.contact %>" <% } %>>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" class="form-control" placeholder="Create a strong password" required>
+            </div>
+            
+            <button type="submit" class="btn-submit">Create Account</button>
+        </form>
+        
+        <a href="/" class="login-link">Already have an account? Sign in here.</a>
+    </div>
+
+</body>
+</html>
