@@ -1,25 +1,30 @@
-<form action="/itinerary/edit/<%= itinerary.itineraryId %>" method="POST">
+<form action="/itinerary/edit/<%= itinerary.id %>" method="POST">
 
-    <input
-        type="text"
-        name="location"
-        value="<%= itinerary.location %>"
+    <input 
+    type="text"
+    name="location_name"
+    value="<%= itinerary.location_name %>"
     >
 
     <input
         type="text"
-        name="country"
-        value="<%= itinerary.country %>"
+        name="latitude"
+        value="<%= itinerary.latitude %>"
     >
 
     <input
-        type="date"
-        name="visitDate"
-        value="<%= itinerary.visitDate %>"
+        type="text"
+        name="longitude"
+        value="<%= itinerary.longitude %>"
     >
 
-    <textarea name="notes"><%= itinerary.notes %></textarea>
+    
+    <input
+    type="datetime-local"
+    name="visit_time"
+    value="<%= itinerary.visit_time ? new Date(itinerary.visit_time).toISOString().slice(0,16) : '' %>"
+    >
 
-    <button>Save</button>
+    <button type="submit">Save</button>
 
 </form>

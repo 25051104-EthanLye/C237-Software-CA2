@@ -15,18 +15,18 @@
 
     <tr>
 
-        <td><%= item.location %></td>
-        <td><%= item.country %></td>
-        <td><%= item.visitDate %></td>
-        <td><%= item.notes %></td>
+        <td><%= item.location_name %></td>
+        <td><%= item.latitude %></td>
+        <td><%= item.longitude %></td>
+        <td><%= item.visit_time %></td>
 
         <td>
 
-            <a href="/itinerary/edit/<%= item.itineraryId %>">
+            <a href="/itinerary/edit/<%= item.id %>">
                 Edit
             </a>
 
-            <form action="/itinerary/delete/<%= item.itineraryId %>" method="POST">
+            <form action="/itinerary/delete/<%= item.id %>" method="POST">
                 <button>Delete</button>
             </form>
 

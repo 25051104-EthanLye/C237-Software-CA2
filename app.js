@@ -144,14 +144,15 @@ app.get('/logout', (req, res) => {
 });
 
 
-// 6. ITINERARY ROUTE 
+// 6. ITINERARY ROUTE
 app.get('/itinerary', isAuthenticated, (req, res) => {
 
-    const userId = req.session.user.userId;
+    const userId = req.session.user.id;
 
-    const sql = "SELECT * FROM itineraries WHERE userId = ?";
+    const sql = "SELECT * FROM itineraries WHERE user_id = ?";
 
     db.query(sql, [userId], (err, results) => {
+
         if (err) {
             console.log(err);
             return res.send("Database Error");
@@ -160,25 +161,32 @@ app.get('/itinerary', isAuthenticated, (req, res) => {
         res.render("itinerary", {
             itineraries: results
         });
+
     });
 
 });
 
-// Save itinerary route 
+// Save itinerary route
 app.post('/itinerary/add', isAuthenticated, (req, res) => {
 
-    const { location, country, visitDate, notes } = req.body;
-    const userId = req.session.user.userId;
+    const {
+        location_name,
+        latitude,
+        longitude,
+        visit_time
+    } = req.body;
+
+    const userId = req.session.user.id;
 
     const sql = `
-    INSERT INTO itineraries
-    (userId, location, country, visitDate, notes)
-    VALUES (?, ?, ?, ?, ?)
+        INSERT INTO itineraries
+        (user_id, location_name, latitude, longitude, visit_time)
+        VALUES (?, ?, ?, ?, ?)
     `;
 
     db.query(
         sql,
-        [userId, location, country, visitDate, notes],
+        [userId, location_name, latitude, longitude, visit_time],
         (err, result) => {
 
             if (err) {
@@ -187,21 +195,22 @@ app.post('/itinerary/add', isAuthenticated, (req, res) => {
             }
 
             res.redirect("/itinerary");
+
         }
     );
 
 });
-// Add location page
+// Add Location Page
 app.get('/itinerary/add', isAuthenticated, (req, res) => {
     res.render('addLocation');
 });
-
 // Show Edit Form
 app.get('/itinerary/edit/:id', isAuthenticated, (req, res) => {
 
+    console.log(req.body);
     const id = req.params.id;
 
-    const sql = "SELECT * FROM itineraries WHERE itineraryId = ?";
+    const sql = "SELECT * FROM itineraries WHERE id = ?";
 
     db.query(sql, [id], (err, results) => {
 
@@ -221,26 +230,37 @@ app.get('/itinerary/edit/:id', isAuthenticated, (req, res) => {
     });
 
 });
-
 // Update itinerary route
 app.post('/itinerary/edit/:id', isAuthenticated, (req, res) => {
 
     const id = req.params.id;
 
-    const { location, country, visitDate, notes } = req.body;
+    const {
+        location_name,
+        latitude,
+        longitude,
+        visit_time
+    } = req.body;
 
     const sql = `
-    UPDATE itineraries
-    SET location = ?,
-        country = ?,
-        visitDate = ?,
-        notes = ?
-    WHERE itineraryId = ?
+        UPDATE itineraries
+        SET
+            location_name = ?,
+            latitude = ?,
+            longitude = ?,
+            visit_time = ?
+        WHERE id = ?
     `;
 
-    connection.query(
+    db.query(
         sql,
-        [location, country, visitDate, notes, id],
+        [
+            location_name,
+            latitude,
+            longitude,
+            visit_time,
+            id
+        ],
         (err, result) => {
 
             if (err) {
@@ -250,18 +270,18 @@ app.post('/itinerary/edit/:id', isAuthenticated, (req, res) => {
 
             res.redirect("/itinerary");
 
-        });
+        }
+    );
 
 });
-
 // Delete itinerary route
 app.post('/itinerary/delete/:id', isAuthenticated, (req, res) => {
 
     const id = req.params.id;
 
-    const sql = "DELETE FROM itineraries WHERE itineraryId = ?";
+    const sql = "DELETE FROM itineraries WHERE id = ?";
 
-    connection.query(sql, [id], (err, result) => {
+    db.query(sql, [id], (err, result) => {
 
         if (err) {
             console.log(err);
