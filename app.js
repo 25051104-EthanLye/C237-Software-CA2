@@ -148,11 +148,15 @@ app.get('/logout', (req, res) => {
 app.get('/trips', isAuthenticated, (req,res)=>{
 
     const sql=`
-    SELECT *
+    SELECT
+    trips.*,
+    COUNT(itineraries.id) AS location_count
     FROM trips
-    WHERE user_id=?
-    ORDER BY id DESC
-    `;
+    LEFT JOIN itineraries
+    ON trips.id = itineraries.trip_id
+    WHERE trips.user_id = ?
+    GROUP BY trips.id
+    ORDER BY trips.id DESC`;
 
     db.query(sql,[req.session.user.id],(err,results)=>{
 
