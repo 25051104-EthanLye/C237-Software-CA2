@@ -1,39 +1,114 @@
-<h2>My Itinerary</h2>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Itinerary</title>
 
-<a href="/itinerary/add">Add Location</a>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
 
-<table>
-    <tr>
-        <th>Location</th>
-        <th>Country</th>
-        <th>Date</th>
-        <th>Notes</th>
-        <th>Actions</th>
-    </tr>
+<%- include('partials/navbar') %>
 
-    <% itineraries.forEach(item => { %>
+<div class="container py-5" style="margin-top:120px;">
 
-    <tr>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-primary">
+            My Itinerary
+        </h2>
 
-        <td><%= item.location_name %></td>
-        <td><%= item.latitude %></td>
-        <td><%= item.longitude %></td>
-        <td><%= item.visit_time %></td>
+        <a href="/itinerary/add" class="btn btn-primary">
+            + Add Location
+        </a>
 
-        <td>
+        <a href="/itinerary/schedule" class="btn btn-success">
+            View Schedule
+        </a>
+    </div>
 
-            <a href="/itinerary/edit/<%= item.id %>">
-                Edit
-            </a>
+    <div class="card shadow">
 
-            <form action="/itinerary/delete/<%= item.id %>" method="POST">
-                <button>Delete</button>
-            </form>
+        <div class="card-body">
 
-        </td>
+            <table class="table table-hover align-middle">
 
-    </tr>
+                <thead class="table-primary">
 
-    <% }) %>
+                    <tr>
+                        <th>Location</th>
+                        <th>Latitude</th>
+                        <th>Longitude</th>
+                        <th>Visit Time</th>
+                        <th width="180">Actions</th>
+                    </tr>
 
-</table>
+                </thead>
+
+                <tbody>
+
+                <% if(itineraries.length===0){ %>
+
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">
+                            No itinerary yet.
+                        </td>
+                    </tr>
+
+                <% } %>
+
+                <% itineraries.forEach(item=>{ %>
+
+                <tr>
+
+                    <td>
+                        <strong><%= item.location_name %></strong>
+                    </td>
+
+                    <td><%= item.latitude %></td>
+
+                    <td><%= item.longitude %></td>
+
+                    <td>
+                        <%= new Date(item.visit_time).toLocaleString() %>
+                    </td>
+
+                    <td>
+
+                        <a href="/itinerary/edit/<%= item.id %>"
+                            class="btn btn-warning btn-sm">
+
+                            Edit
+
+                        </a>
+
+                        <form
+                            action="/itinerary/delete/<%= item.id %>"
+                            method="POST"
+                            class="d-inline">
+
+                            <button class="btn btn-danger btn-sm"
+                            onclick="return confirm('Delete this location?')">
+
+                                Delete
+
+                            </button>
+
+                        </form>
+
+                    </td>
+
+                </tr>
+
+                <% }) %>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>

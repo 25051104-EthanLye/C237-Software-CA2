@@ -165,7 +165,33 @@ app.get('/itinerary', isAuthenticated, (req, res) => {
     });
 
 });
+// Schedule
+app.get('/itinerary/schedule', isAuthenticated, (req,res)=>{
 
+    const userId = req.session.user.id;
+
+    const sql = `
+        SELECT *
+        FROM itineraries
+        WHERE user_id = ?
+        ORDER BY visit_time ASC
+    `;
+
+    db.query(sql,[userId],(err,results)=>{
+
+        if(err){
+            console.log(err);
+            return res.send("Database Error");
+        }
+
+        res.render('schedule',{
+            schedules: results,
+            user:req.session.user
+        });
+
+    });
+
+});
 // Save itinerary route
 app.post('/itinerary/add', isAuthenticated, (req, res) => {
 
