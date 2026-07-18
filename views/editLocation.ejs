@@ -1,0 +1,25 @@
+<form action="/itinerary/edit/<%= itinerary.itineraryId %>" method="POST">
+
+    <input
+        type="text"
+        name="location"
+        value="<%= itinerary.location %>"
+    >
+
+    <input
+        type="text"
+        name="country"
+        value="<%= itinerary.country %>"
+    >
+
+    <input
+        type="date"
+        name="visitDate"
+        value="<%= itinerary.visitDate %>"
+    >
+
+    <textarea name="notes"><%= itinerary.notes %></textarea>
+
+    <button>Save</button>
+
+</form>

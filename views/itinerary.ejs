@@ -1,0 +1,39 @@
+<h2>My Itinerary</h2>
+
+<a href="/itinerary/add">Add Location</a>
+
+<table>
+    <tr>
+        <th>Location</th>
+        <th>Country</th>
+        <th>Date</th>
+        <th>Notes</th>
+        <th>Actions</th>
+    </tr>
+
+    <% itineraries.forEach(item => { %>
+
+    <tr>
+
+        <td><%= item.location %></td>
+        <td><%= item.country %></td>
+        <td><%= item.visitDate %></td>
+        <td><%= item.notes %></td>
+
+        <td>
+
+            <a href="/itinerary/edit/<%= item.itineraryId %>">
+                Edit
+            </a>
+
+            <form action="/itinerary/delete/<%= item.itineraryId %>" method="POST">
+                <button>Delete</button>
+            </form>
+
+        </td>
+
+    </tr>
+
+    <% }) %>
+
+</table>

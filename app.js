@@ -48,6 +48,16 @@ const validateRegistration = (req, res, next) => {
     next(); 
 };
 
+// --- AUTHENTICATION MIDDLEWARE ---
+const isAuthenticated = (req, res, next) => {
+    if (!req.session.user) {
+        req.flash('error', 'Please log in to access this page.');
+        return res.redirect('/');
+    }
+
+    next();
+};
+
 // --- PATHS --- //
 
 // 1. HOME ROUTE
@@ -133,6 +143,136 @@ app.get('/logout', (req, res) => {
     res.redirect('/');
 });
 
+
+// 6. ITINERARY ROUTE 
+app.get('/itinerary', isAuthenticated, (req, res) => {
+
+    const userId = req.session.user.userId;
+
+    const sql = "SELECT * FROM itineraries WHERE userId = ?";
+
+    db.query(sql, [userId], (err, results) => {
+        if (err) {
+            console.log(err);
+            return res.send("Database Error");
+        }
+
+        res.render("itinerary", {
+            itineraries: results
+        });
+    });
+
+});
+
+// Save itinerary route 
+app.post('/itinerary/add', isAuthenticated, (req, res) => {
+
+    const { location, country, visitDate, notes } = req.body;
+    const userId = req.session.user.userId;
+
+    const sql = `
+    INSERT INTO itineraries
+    (userId, location, country, visitDate, notes)
+    VALUES (?, ?, ?, ?, ?)
+    `;
+
+    db.query(
+        sql,
+        [userId, location, country, visitDate, notes],
+        (err, result) => {
+
+            if (err) {
+                console.log(err);
+                return res.send("Database Error");
+            }
+
+            res.redirect("/itinerary");
+        }
+    );
+
+});
+// Add location page
+app.get('/itinerary/add', isAuthenticated, (req, res) => {
+    res.render('addLocation');
+});
+
+// Show Edit Form
+app.get('/itinerary/edit/:id', isAuthenticated, (req, res) => {
+
+    const id = req.params.id;
+
+    const sql = "SELECT * FROM itineraries WHERE itineraryId = ?";
+
+    db.query(sql, [id], (err, results) => {
+
+        if (err) {
+            console.log(err);
+            return res.send("Database Error");
+        }
+
+        if (results.length === 0) {
+            return res.send("Itinerary not found");
+        }
+
+        res.render("editLocation", {
+            itinerary: results[0]
+        });
+
+    });
+
+});
+
+// Update itinerary route
+app.post('/itinerary/edit/:id', isAuthenticated, (req, res) => {
+
+    const id = req.params.id;
+
+    const { location, country, visitDate, notes } = req.body;
+
+    const sql = `
+    UPDATE itineraries
+    SET location = ?,
+        country = ?,
+        visitDate = ?,
+        notes = ?
+    WHERE itineraryId = ?
+    `;
+
+    connection.query(
+        sql,
+        [location, country, visitDate, notes, id],
+        (err, result) => {
+
+            if (err) {
+                console.log(err);
+                return res.send("Database Error");
+            }
+
+            res.redirect("/itinerary");
+
+        });
+
+});
+
+// Delete itinerary route
+app.post('/itinerary/delete/:id', isAuthenticated, (req, res) => {
+
+    const id = req.params.id;
+
+    const sql = "DELETE FROM itineraries WHERE itineraryId = ?";
+
+    connection.query(sql, [id], (err, result) => {
+
+        if (err) {
+            console.log(err);
+            return res.send("Database Error");
+        }
+
+        res.redirect("/itinerary");
+
+    });
+
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
