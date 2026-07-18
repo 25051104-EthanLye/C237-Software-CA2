@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>My Trips</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+
+<%- include('partials/navbar') %>
+
+<div class="container py-5" style="margin-top:120px;">
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+<h2 class="fw-bold text-primary">
+My Trips
+</h2>
+
+<a href="/trips/add" class="btn btn-primary">
++ New Trip
+</a>
+
+</div>
+
+<div class="row">
+
+<% if(trips.length==0){ %>
+
+<div class="col-12">
+
+<div class="alert alert-info">
+
+No trips created yet.
+
+</div>
+
+</div>
+
+<% } %>
+
+<% trips.forEach(trip=>{ %>
+
+<div class="col-md-4 mb-4">
+
+<div class="card shadow h-100">
+
+<div class="card-body">
+
+<h4><%= trip.trip_name %></h4>
+
+<p class="text-muted">
+
+Trip ID: <%= trip.id %>
+
+</p>
+
+<a
+href="/trip/<%= trip.id %>"
+class="btn btn-success">
+
+Open Trip
+
+</a>
+
+</div>
+
+</div>
+
+</div>
+
+<% }) %>
+
+</div>
+
+</div>
+
+</body>
+
+</html>

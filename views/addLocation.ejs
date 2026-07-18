@@ -27,7 +27,7 @@
 
 <div class="card-body">
 
-<form action="/itinerary/add" method="POST">
+<form action="/trip/<%= trip.id %>/add" method="POST">
 
 <div class="mb-3">
 
@@ -92,8 +92,7 @@ class="form-control">
 
 <div class="d-flex justify-content-between">
 
-<a href="/itinerary"
-class="btn btn-secondary">
+<a href="/trip/<%= trip.id %>" class="btn btn-secondary">
 
 Back
 

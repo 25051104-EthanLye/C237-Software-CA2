@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-    <title>My Itinerary</title>
+    <title><%= trip.trip_name %></title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
@@ -14,17 +15,27 @@
 
     <div class="d-flex justify-content-between align-items-center mb-4">
 
-        <h2 class="fw-bold text-primary">
-            My Itinerary
-        </h2>
+        <div>
+            <h2 class="fw-bold text-primary mb-1">
+                <%= trip.trip_name %>
+            </h2>
+
+            <small class="text-muted">
+                Manage locations for this trip
+            </small>
+        </div>
 
         <div>
 
-            <a href="/itinerary/add" class="btn btn-primary">
+            <a href="/trips" class="btn btn-secondary">
+                ← Back to Trips
+            </a>
+
+            <a href="/trip/<%= trip.id %>/add" class="btn btn-primary">
                 + Add Location
             </a>
 
-            <a href="/itinerary/schedule" class="btn btn-success">
+            <a href="/trip/<%= trip.id %>/schedule" class="btn btn-success">
                 View Schedule
             </a>
 
@@ -51,70 +62,105 @@
 
                 <tbody>
 
-                <% if(itineraries.length===0){ %>
+                <% if(itineraries.length === 0){ %>
 
                     <tr>
-                        <td colspan="4" class="text-center text-muted">
-                            No itinerary yet.
+
+                        <td colspan="4" class="text-center text-muted py-4">
+
+                            No locations added for this trip.
+
                         </td>
+
                     </tr>
 
-                <% } %>
+                <% } else { %>
 
-                <% itineraries.forEach(item=>{ %>
+                    <% itineraries.forEach(item => { %>
 
-                <tr>
+                    <tr>
 
-                    <td>
-                        <strong><%= item.location_name %></strong>
-                    </td>
+                        <td>
 
-                    <td>
-                        <%= new Date(item.visit_time).toLocaleString() %>
-                    </td>
+                            <strong><%= item.location_name %></strong>
 
-                    <td>
+                        </td>
 
-                        <a
-                            href="https://www.google.com/maps?q=<%= item.latitude %>,<%= item.longitude %>"
-                            target="_blank"
-                            class="btn btn-info btn-sm">
+                        <td>
 
-                            View Map
+                            <% if(item.visit_time){ %>
 
-                        </a>
+                                <%= new Date(item.visit_time).toLocaleString() %>
 
-                    </td>
+                            <% } else { %>
 
-                    <td>
+                                <span class="text-muted">
 
-                        <a href="/itinerary/edit/<%= item.id %>"
-                           class="btn btn-warning btn-sm">
+                                    Not Scheduled
 
-                            Edit
+                                </span>
 
-                        </a>
+                            <% } %>
 
-                        <form
-                            action="/itinerary/delete/<%= item.id %>"
+                        </td>
+
+                        <td>
+
+                            <% if(item.latitude && item.longitude){ %>
+
+                                <a
+                                href="https://www.google.com/maps?q=<%= item.latitude %>,<%= item.longitude %>"
+                                target="_blank"
+                                class="btn btn-info btn-sm">
+
+                                    View Map
+
+                                </a>
+
+                            <% } else { %>
+
+                                <span class="text-muted">
+
+                                    No Coordinates
+
+                                </span>
+
+                            <% } %>
+
+                        </td>
+
+                        <td>
+
+                            <a
+                            href="/trip/<%= trip.id %>/edit/<%= item.id %>"
+                            class="btn btn-warning btn-sm">
+
+                                Edit
+
+                            </a>
+
+                            <form
+                            action="/trip/<%= trip.id %>/delete/<%= item.id %>"
                             method="POST"
                             class="d-inline">
 
-                            <button
+                                <button
                                 class="btn btn-danger btn-sm"
                                 onclick="return confirm('Delete this location?')">
 
-                                Delete
+                                    Delete
 
-                            </button>
+                                </button>
 
-                        </form>
+                            </form>
 
-                    </td>
+                        </td>
 
-                </tr>
+                    </tr>
 
-                <% }) %>
+                    <% }) %>
+
+                <% } %>
 
                 </tbody>
 
@@ -127,4 +173,5 @@
 </div>
 
 </body>
+
 </html>

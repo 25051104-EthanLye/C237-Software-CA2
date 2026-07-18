@@ -145,55 +145,177 @@ app.get('/logout', (req, res) => {
 
 
 // 6. ITINERARY ROUTE
-app.get('/itinerary', isAuthenticated, (req, res) => {
+app.get('/trips', isAuthenticated, (req,res)=>{
 
-    const userId = req.session.user.id;
+    const sql=`
+    SELECT *
+    FROM trips
+    WHERE user_id=?
+    ORDER BY id DESC
+    `;
 
-    const sql = "SELECT * FROM itineraries WHERE user_id = ?";
+    db.query(sql,[req.session.user.id],(err,results)=>{
 
-    db.query(sql, [userId], (err, results) => {
+        if(err){
+
+            console.log(err);
+            return res.send("Database Error");
+
+        }
+
+        res.render("trips",{
+
+            trips:results
+
+        });
+
+    });
+
+});
+
+app.get('/trips/add',isAuthenticated,(req,res)=>{
+
+    res.render("addTrip");
+
+});
+
+app.post('/trips/add',isAuthenticated,(req,res)=>{
+
+    const sql=`
+    INSERT INTO trips
+    (user_id,trip_name)
+    VALUES(?,?)
+    `;
+
+    db.query(
+
+        sql,
+
+        [
+
+            req.session.user.id,
+
+            req.body.trip_name
+
+        ],
+
+        (err)=>{
+
+            if(err){
+
+                console.log(err);
+
+                return res.send("Database Error");
+
+            }
+
+            res.redirect("/trips");
+
+        }
+
+    );
+
+});
+
+app.get('/trip/:id', isAuthenticated, (req, res) => {
+
+    const tripId = req.params.id;
+
+    const tripSql = `
+        SELECT *
+        FROM trips
+        WHERE id = ? AND user_id = ?
+    `;
+
+    db.query(tripSql, [tripId, req.session.user.id], (err, tripResult) => {
 
         if (err) {
             console.log(err);
             return res.send("Database Error");
         }
 
-        res.render("itinerary", {
-            itineraries: results
+        if (tripResult.length === 0) {
+            return res.send("Trip not found");
+        }
+
+        const itinerarySql = `
+            SELECT *
+            FROM itineraries
+            WHERE trip_id = ?
+            ORDER BY visit_time ASC
+        `;
+
+        db.query(itinerarySql, [tripId], (err, itineraryResult) => {
+
+            if (err) {
+                console.log(err);
+                return res.send("Database Error");
+            }
+
+            res.render("itinerary", {
+                trip: tripResult[0],
+                itineraries: itineraryResult
+            });
+
         });
 
     });
 
 });
 // Schedule
-app.get('/itinerary/schedule', isAuthenticated, (req,res)=>{
+app.get('/trip/:id/schedule', isAuthenticated, (req, res) => {
 
-    const userId = req.session.user.id;
+    const tripId = req.params.id;
 
-    const sql = `
+    const tripSql = `
         SELECT *
-        FROM itineraries
-        WHERE user_id = ?
-        ORDER BY visit_time ASC
+        FROM trips
+        WHERE id=? AND user_id=?
     `;
 
-    db.query(sql,[userId],(err,results)=>{
+    db.query(tripSql,
+        [tripId, req.session.user.id],
+        (err, tripResult) => {
 
-        if(err){
-            console.log(err);
-            return res.send("Database Error");
-        }
+            if (err) {
+                console.log(err);
+                return res.send("Database Error");
+            }
 
-        res.render('schedule',{
-            schedules: results,
-            user:req.session.user
+            if (tripResult.length === 0) {
+                return res.send("Trip not found");
+            }
+
+            const sql = `
+                SELECT *
+                FROM itineraries
+                WHERE trip_id=?
+                ORDER BY visit_time ASC
+            `;
+
+            db.query(sql,
+                [tripId],
+                (err, results) => {
+
+                    if (err) {
+                        console.log(err);
+                        return res.send("Database Error");
+                    }
+
+                    res.render("schedule", {
+                        trip: tripResult[0],
+                        schedules: results
+                    });
+
+                });
+
         });
-
-    });
 
 });
 // Save itinerary route
-app.post('/itinerary/add', isAuthenticated, (req, res) => {
+app.post('/trip/:id/add', isAuthenticated, (req, res) => {
+
+    const tripId = req.params.id;
 
     const {
         location_name,
@@ -202,43 +324,47 @@ app.post('/itinerary/add', isAuthenticated, (req, res) => {
         visit_time
     } = req.body;
 
-    const userId = req.session.user.id;
-
     const sql = `
         INSERT INTO itineraries
-        (user_id, location_name, latitude, longitude, visit_time)
-        VALUES (?, ?, ?, ?, ?)
+        (trip_id, user_id, location_name, latitude, longitude, visit_time)
+        VALUES (?, ?, ?, ?, ?, ?)
     `;
 
     db.query(
         sql,
-        [userId, location_name, latitude, longitude, visit_time],
-        (err, result) => {
+        [
+            tripId,
+            req.session.user.id,
+            location_name,
+            latitude,
+            longitude,
+            visit_time
+        ],
+        (err) => {
 
             if (err) {
                 console.log(err);
                 return res.send("Database Error");
             }
 
-            res.redirect("/itinerary");
+            res.redirect("/trip/" + tripId);
 
         }
     );
 
 });
 // Add Location Page
-app.get('/itinerary/add', isAuthenticated, (req, res) => {
-    res.render('addLocation');
-});
-// Show Edit Form
-app.get('/itinerary/edit/:id', isAuthenticated, (req, res) => {
+app.get('/trip/:id/add', isAuthenticated, (req, res) => {
 
-    console.log(req.body);
-    const id = req.params.id;
+    const tripId = req.params.id;
 
-    const sql = "SELECT * FROM itineraries WHERE id = ?";
+    const sql = `
+        SELECT *
+        FROM trips
+        WHERE id = ? AND user_id = ?
+    `;
 
-    db.query(sql, [id], (err, results) => {
+    db.query(sql, [tripId, req.session.user.id], (err, results) => {
 
         if (err) {
             console.log(err);
@@ -246,19 +372,51 @@ app.get('/itinerary/edit/:id', isAuthenticated, (req, res) => {
         }
 
         if (results.length === 0) {
-            return res.send("Itinerary not found");
+            return res.send("Trip not found");
+        }
+
+        res.render("addLocation", {
+            trip: results[0]
+        });
+
+    });
+
+});
+// Show Edit Form
+app.get('/trip/:tripId/edit/:id', isAuthenticated, (req, res) => {
+
+    const tripId = req.params.tripId;
+    const id = req.params.id;
+
+    const sql = `
+        SELECT *
+        FROM itineraries
+        WHERE id = ? AND trip_id = ?
+    `;
+
+    db.query(sql, [id, tripId], (err, results) => {
+
+        if (err) {
+            console.log(err);
+            return res.send("Database Error");
+        }
+
+        if (results.length === 0) {
+            return res.send("Location not found");
         }
 
         res.render("editLocation", {
-            itinerary: results[0]
+            itinerary: results[0],
+            tripId: tripId
         });
 
     });
 
 });
 // Update itinerary route
-app.post('/itinerary/edit/:id', isAuthenticated, (req, res) => {
+app.post('/trip/:tripId/edit/:id', isAuthenticated, (req, res) => {
 
+    const tripId = req.params.tripId;
     const id = req.params.id;
 
     const {
@@ -271,52 +429,58 @@ app.post('/itinerary/edit/:id', isAuthenticated, (req, res) => {
     const sql = `
         UPDATE itineraries
         SET
-            location_name = ?,
-            latitude = ?,
-            longitude = ?,
-            visit_time = ?
-        WHERE id = ?
+            location_name=?,
+            latitude=?,
+            longitude=?,
+            visit_time=?
+        WHERE id=? AND trip_id=?
     `;
 
-    db.query(
-        sql,
+    db.query(sql,
         [
             location_name,
             latitude,
             longitude,
             visit_time,
-            id
+            id,
+            tripId
         ],
-        (err, result) => {
+        (err) => {
 
             if (err) {
                 console.log(err);
                 return res.send("Database Error");
             }
 
-            res.redirect("/itinerary");
+            res.redirect("/trip/" + tripId);
 
-        }
-    );
+        });
 
 });
 // Delete itinerary route
-app.post('/itinerary/delete/:id', isAuthenticated, (req, res) => {
+ app.post('/trip/:tripId/delete/:id', isAuthenticated, (req, res) => {
 
+    const tripId = req.params.tripId;
     const id = req.params.id;
 
-    const sql = "DELETE FROM itineraries WHERE id = ?";
+    const sql = `
+        DELETE
+        FROM itineraries
+        WHERE id=? AND trip_id=?
+    `;
 
-    db.query(sql, [id], (err, result) => {
+    db.query(sql,
+        [id, tripId],
+        (err) => {
 
-        if (err) {
-            console.log(err);
-            return res.send("Database Error");
-        }
+            if (err) {
+                console.log(err);
+                return res.send("Database Error");
+            }
 
-        res.redirect("/itinerary");
+            res.redirect("/trip/" + tripId);
 
-    });
+        });
 
 });
 

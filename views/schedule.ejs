@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>Travel Schedule</title>
+    <title><%= trip.trip_name %> Schedule</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
@@ -19,7 +19,7 @@
             Travel Schedule
         </h2>
 
-        <a href="/itinerary" class="btn btn-secondary">
+        <a href="/trip/<%= trip.id %>"class="btn btn-secondary">
             ← Back to Itinerary
         </a>
 

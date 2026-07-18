@@ -27,7 +27,7 @@
 
 <div class="card-body">
 
-<form action="/itinerary/edit/<%= itinerary.id %>" method="POST">
+<form action="/trip/<%= tripId %>/edit/<%= itinerary.id %>" method="POST">
 
 <div class="mb-3">
 
@@ -94,7 +94,7 @@ value="<%= itinerary.visit_time ? new Date(itinerary.visit_time).toISOString().s
 
 <div class="d-flex justify-content-between">
 
-<a href="/itinerary"
+<a href="/trip/<%= tripId %>"
 class="btn btn-secondary">
 
 Cancel
