@@ -37,7 +37,8 @@
 type="text"
 name="location_name"
 class="form-control"
-value="<%= itinerary.location_name %>">
+value="<%= itinerary.location_name %>"
+required>
 
 </div>
 
@@ -48,10 +49,15 @@ value="<%= itinerary.location_name %>">
 <label class="form-label">Latitude</label>
 
 <input
-type="text"
+type="number"
+step="any"
 name="latitude"
 class="form-control"
 value="<%= itinerary.latitude %>">
+
+<div class="form-text">
+Example: 1.3521 (North is positive)
+</div>
 
 </div>
 
@@ -60,10 +66,15 @@ value="<%= itinerary.latitude %>">
 <label class="form-label">Longitude</label>
 
 <input
-type="text"
+type="number"
+step="any"
 name="longitude"
 class="form-control"
 value="<%= itinerary.longitude %>">
+
+<div class="form-text">
+Example: 103.8198 (East is positive)
+</div>
 
 </div>
 

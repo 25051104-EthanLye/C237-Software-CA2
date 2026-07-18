@@ -5,6 +5,7 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
+
 <body class="bg-light">
 
 <%- include('partials/navbar') %>
@@ -12,17 +13,23 @@
 <div class="container py-5" style="margin-top:120px;">
 
     <div class="d-flex justify-content-between align-items-center mb-4">
+
         <h2 class="fw-bold text-primary">
             My Itinerary
         </h2>
 
-        <a href="/itinerary/add" class="btn btn-primary">
-            + Add Location
-        </a>
+        <div>
 
-        <a href="/itinerary/schedule" class="btn btn-success">
-            View Schedule
-        </a>
+            <a href="/itinerary/add" class="btn btn-primary">
+                + Add Location
+            </a>
+
+            <a href="/itinerary/schedule" class="btn btn-success">
+                View Schedule
+            </a>
+
+        </div>
+
     </div>
 
     <div class="card shadow">
@@ -35,9 +42,8 @@
 
                     <tr>
                         <th>Location</th>
-                        <th>Latitude</th>
-                        <th>Longitude</th>
                         <th>Visit Time</th>
+                        <th>Map</th>
                         <th width="180">Actions</th>
                     </tr>
 
@@ -48,7 +54,7 @@
                 <% if(itineraries.length===0){ %>
 
                     <tr>
-                        <td colspan="5" class="text-center text-muted">
+                        <td colspan="4" class="text-center text-muted">
                             No itinerary yet.
                         </td>
                     </tr>
@@ -63,18 +69,27 @@
                         <strong><%= item.location_name %></strong>
                     </td>
 
-                    <td><%= item.latitude %></td>
-
-                    <td><%= item.longitude %></td>
-
                     <td>
                         <%= new Date(item.visit_time).toLocaleString() %>
                     </td>
 
                     <td>
 
+                        <a
+                            href="https://www.google.com/maps?q=<%= item.latitude %>,<%= item.longitude %>"
+                            target="_blank"
+                            class="btn btn-info btn-sm">
+
+                            View Map
+
+                        </a>
+
+                    </td>
+
+                    <td>
+
                         <a href="/itinerary/edit/<%= item.id %>"
-                            class="btn btn-warning btn-sm">
+                           class="btn btn-warning btn-sm">
 
                             Edit
 
@@ -85,8 +100,9 @@
                             method="POST"
                             class="d-inline">
 
-                            <button class="btn btn-danger btn-sm"
-                            onclick="return confirm('Delete this location?')">
+                            <button
+                                class="btn btn-danger btn-sm"
+                                onclick="return confirm('Delete this location?')">
 
                                 Delete
 
