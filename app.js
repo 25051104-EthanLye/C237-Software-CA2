@@ -31,9 +31,9 @@ app.use(session({
 
 app.use(flash());
 
-// middleware to make flash messages available in all views
+// --- GLOBAL VARIABLES MIDDLEWARE ---
 app.use((req, res, next) => {
-    res.locals.messages = req.flash();
+    res.locals.user = req.session.user || null;
     next();
 });
 
@@ -54,25 +54,23 @@ const validateRegistration = (req, res, next) => {
     next(); 
 };
 
-// --- AUTHENTICATION MIDDLEWARE ---
+// --- AUTHENTICATION MIDDLEWARE --- Ethan's part
 const isAuthenticated = (req, res, next) => {
     if (!req.session.user) {
         req.flash('error', 'Please log in to access this page.');
         return res.redirect('/');
     }
-
     next();
 };
 
 // --- PATHS --- //
 
-// Ethan's Paths
+// ------------------------------------------------------- Ethan's Path start
 // 1. HOME ROUTE
 app.get('/', (req, res) => {
     res.render('index', { 
-        user: req.session.user, 
         messages: req.flash('success'),
-        errors: req.flash('error') // Catches failed login attempts to trigger the modal
+        errors: req.flash('error') 
     });
 });
 
@@ -92,11 +90,8 @@ app.post('/register', validateRegistration, (req, res) => {
 
         if (results.length > 0) {
             let errorMsg = 'That account already exists.';
-            if (results[0].username === username) {
-                errorMsg = 'That username is already taken. Please choose another one.';
-            } else if (results[0].email === email) {
-                errorMsg = 'That email is already registered. Please log in instead.';
-            }
+            if (results[0].username === username) errorMsg = 'That username is already taken.';
+            else if (results[0].email === email) errorMsg = 'That email is already registered.';
 
             req.flash('error', errorMsg);
             return res.render('register', { 
@@ -109,37 +104,33 @@ app.post('/register', validateRegistration, (req, res) => {
         
         db.query(insertSql, [username, email, contact, password, 'user', 'active'], (err, result) => {
             if (err) throw err;
-            
-            console.log("New unique user created successfully!");
-            
-            // Sends the success message to the homepage so the modal instantly pops open!
             req.flash('success', 'Registration successful! Please log in.');
             res.redirect('/'); 
         });
     });
 });
 
-// 4. LOGIN POST ROUTE (Triggered by the Navbar Modal)
+// 4. LOGIN POST ROUTE (Reverted to log in immediately upon correct credentials)
 app.post('/login', (req, res) => {
-    const { email, password } = req.body;
+    const { username, password } = req.body;
     
-    if (!email || !password) {
-        req.flash('error', 'All fields are required.');
-        return res.redirect('/'); 
+    if (!username || !password) {
+        req.flash('error', 'Please fill in both username and password.');
+        return req.session.save(() => res.redirect('/')); 
     }
     
-    const sql = 'SELECT * FROM users WHERE email = ? AND password = SHA1(?)';
-    db.query(sql, [email, password], (err, results) => {
+    const sql = 'SELECT * FROM users WHERE username = ? AND password = SHA1(?)';
+    db.query(sql, [username, password], (err, results) => {
         if (err) throw err;
         
         if (results.length > 0) {
-            // Success! Create session and reload the page to display the profile button
+            // Log the user in directly!
             req.session.user = results[0]; 
-            res.redirect('/'); 
+            req.session.save(() => res.redirect('/')); 
         } else {
-            // Failure! Redirect to home with an error, triggering the modal to pop open again
-            req.flash('error', 'Invalid email or password.');
-            res.redirect('/'); 
+            // Incorrect credentials
+            req.flash('error', 'Incorrect username or password. Please try again.');
+            req.session.save(() => res.redirect('/')); 
         }
     });
 });
@@ -150,350 +141,170 @@ app.get('/logout', (req, res) => {
     res.redirect('/');
 });
 
-// End of Ethan's Paths
+// --- 7. PROFILE ROUTES --- //
 
-// 6. ITINERARY ROUTE
+// Render the Profile Page
+app.get('/profile', isAuthenticated, (req, res) => {
+    // Fetch the most up-to-date user info directly from the database
+    const sql = 'SELECT * FROM users WHERE id = ?';
+    db.query(sql, [req.session.user.id], (err, results) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+        
+        res.render('profile', { 
+            userData: results[0],
+            messages: req.flash() 
+        });
+    });
+});
+
+// Process the Profile Edits
+app.post('/profile/edit', isAuthenticated, (req, res) => {
+    const { username, email, contact, password } = req.body;
+    
+    let sql;
+    let params;
+
+    // If the user typed a new password, hash it and update it.
+    // Otherwise, skip updating the password column.
+    if (password && password.trim() !== "") {
+        sql = 'UPDATE users SET username = ?, email = ?, contact = ?, password = SHA1(?) WHERE id = ?';
+        params = [username, email, contact, password, req.session.user.id];
+    } else {
+        sql = 'UPDATE users SET username = ?, email = ?, contact = ? WHERE id = ?';
+        params = [username, email, contact, req.session.user.id];
+    }
+
+    db.query(sql, params, (err, results) => {
+        if (err) { 
+            console.log(err); 
+            req.flash('error', 'Update failed. That username or email might already be taken.');
+            return res.redirect('/profile'); 
+        }
+        
+        // Instantly update the session so the Navbar reflects the new username
+        req.session.user.username = username;
+        req.session.user.email = email;
+        req.session.user.contact = contact;
+        
+        req.flash('success', 'Profile updated successfully!');
+        res.redirect('/profile');
+    });
+});
+// ------------------------------------------------------- Ethan's Path end
+
+// 6. ITINERARY ROUTES
 app.get('/trips', isAuthenticated, (req,res)=>{
-
     const sql=`
-    SELECT
-    trips.*,
-    COUNT(itineraries.id) AS location_count
-    FROM trips
-    LEFT JOIN itineraries
-    ON trips.id = itineraries.trip_id
-    WHERE trips.user_id = ?
-    GROUP BY trips.id
-    ORDER BY trips.id DESC`;
+    SELECT trips.*, COUNT(itineraries.id) AS location_count
+    FROM trips LEFT JOIN itineraries ON trips.id = itineraries.trip_id
+    WHERE trips.user_id = ? GROUP BY trips.id ORDER BY trips.id DESC`;
 
     db.query(sql,[req.session.user.id],(err,results)=>{
-
-        if(err){
-
-            console.log(err);
-            return res.send("Database Error");
-
-        }
-
-        res.render("trips",{
-
-            trips:results
-
-        });
-
+        if(err){ console.log(err); return res.send("Database Error"); }
+        res.render("trips",{ trips:results });
     });
-
 });
 
 app.get('/trips/add',isAuthenticated,(req,res)=>{
-
     res.render("addTrip");
-
 });
 
 app.post('/trips/add',isAuthenticated,(req,res)=>{
-
-    const sql=`
-    INSERT INTO trips
-    (user_id,trip_name)
-    VALUES(?,?)
-    `;
-
-    db.query(
-
-        sql,
-
-        [
-
-            req.session.user.id,
-
-            req.body.trip_name
-
-        ],
-
-        (err)=>{
-
-            if(err){
-
-                console.log(err);
-
-                return res.send("Database Error");
-
-            }
-
-            res.redirect("/trips");
-
-        }
-
-    );
-
+    const sql=`INSERT INTO trips (user_id,trip_name) VALUES(?,?)`;
+    db.query(sql, [req.session.user.id, req.body.trip_name], (err)=>{
+        if(err){ console.log(err); return res.send("Database Error"); }
+        res.redirect("/trips");
+    });
 });
 
 app.get('/trip/:id', isAuthenticated, (req, res) => {
-
     const tripId = req.params.id;
-
-    const tripSql = `
-        SELECT *
-        FROM trips
-        WHERE id = ? AND user_id = ?
-    `;
+    const tripSql = `SELECT * FROM trips WHERE id = ? AND user_id = ?`;
 
     db.query(tripSql, [tripId, req.session.user.id], (err, tripResult) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+        if (tripResult.length === 0) return res.send("Trip not found");
 
-        if (err) {
-            console.log(err);
-            return res.send("Database Error");
-        }
-
-        if (tripResult.length === 0) {
-            return res.send("Trip not found");
-        }
-
-        const itinerarySql = `
-            SELECT *
-            FROM itineraries
-            WHERE trip_id = ?
-            ORDER BY visit_time ASC
-        `;
-
+        const itinerarySql = `SELECT * FROM itineraries WHERE trip_id = ? ORDER BY visit_time ASC`;
         db.query(itinerarySql, [tripId], (err, itineraryResult) => {
-
-            if (err) {
-                console.log(err);
-                return res.send("Database Error");
-            }
-
-            res.render("itinerary", {
-                trip: tripResult[0],
-                itineraries: itineraryResult
-            });
-
+            if (err) { console.log(err); return res.send("Database Error"); }
+            res.render("itinerary", { trip: tripResult[0], itineraries: itineraryResult });
         });
-
     });
-
 });
-// Schedule
+
 app.get('/trip/:id/schedule', isAuthenticated, (req, res) => {
-
     const tripId = req.params.id;
+    const tripSql = `SELECT * FROM trips WHERE id=? AND user_id=?`;
 
-    const tripSql = `
-        SELECT *
-        FROM trips
-        WHERE id=? AND user_id=?
-    `;
+    db.query(tripSql, [tripId, req.session.user.id], (err, tripResult) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+        if (tripResult.length === 0) return res.send("Trip not found");
 
-    db.query(tripSql,
-        [tripId, req.session.user.id],
-        (err, tripResult) => {
-
-            if (err) {
-                console.log(err);
-                return res.send("Database Error");
-            }
-
-            if (tripResult.length === 0) {
-                return res.send("Trip not found");
-            }
-
-            const sql = `
-                SELECT *
-                FROM itineraries
-                WHERE trip_id=?
-                ORDER BY visit_time ASC
-            `;
-
-            db.query(sql,
-                [tripId],
-                (err, results) => {
-
-                    if (err) {
-                        console.log(err);
-                        return res.send("Database Error");
-                    }
-
-                    res.render("schedule", {
-                        trip: tripResult[0],
-                        schedules: results
-                    });
-
-                });
-
+        const sql = `SELECT * FROM itineraries WHERE trip_id=? ORDER BY visit_time ASC`;
+        db.query(sql, [tripId], (err, results) => {
+            if (err) { console.log(err); return res.send("Database Error"); }
+            res.render("schedule", { trip: tripResult[0], schedules: results });
         });
-
+    });
 });
-// Save itinerary route
+
 app.post('/trip/:id/add', isAuthenticated, (req, res) => {
-
     const tripId = req.params.id;
+    const { location_name, latitude, longitude, visit_time } = req.body;
+    const sql = `INSERT INTO itineraries (trip_id, user_id, location_name, latitude, longitude, visit_time) VALUES (?, ?, ?, ?, ?, ?)`;
 
-    const {
-        location_name,
-        latitude,
-        longitude,
-        visit_time
-    } = req.body;
-
-    const sql = `
-        INSERT INTO itineraries
-        (trip_id, user_id, location_name, latitude, longitude, visit_time)
-        VALUES (?, ?, ?, ?, ?, ?)
-    `;
-
-    db.query(
-        sql,
-        [
-            tripId,
-            req.session.user.id,
-            location_name,
-            latitude,
-            longitude,
-            visit_time
-        ],
-        (err) => {
-
-            if (err) {
-                console.log(err);
-                return res.send("Database Error");
-            }
-
-            res.redirect("/trip/" + tripId);
-
-        }
-    );
-
+    db.query(sql, [tripId, req.session.user.id, location_name, latitude, longitude, visit_time], (err) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+        res.redirect("/trip/" + tripId);
+    });
 });
-// Add Location Page
+
 app.get('/trip/:id/add', isAuthenticated, (req, res) => {
-
     const tripId = req.params.id;
-
-    const sql = `
-        SELECT *
-        FROM trips
-        WHERE id = ? AND user_id = ?
-    `;
+    const sql = `SELECT * FROM trips WHERE id = ? AND user_id = ?`;
 
     db.query(sql, [tripId, req.session.user.id], (err, results) => {
-
-        if (err) {
-            console.log(err);
-            return res.send("Database Error");
-        }
-
-        if (results.length === 0) {
-            return res.send("Trip not found");
-        }
-
-        res.render("addLocation", {
-            trip: results[0]
-        });
-
+        if (err) { console.log(err); return res.send("Database Error"); }
+        if (results.length === 0) return res.send("Trip not found");
+        res.render("addLocation", { trip: results[0] });
     });
-
 });
-// Show Edit Form
-app.get('/trip/:tripId/edit/:id', isAuthenticated, (req, res) => {
 
+app.get('/trip/:tripId/edit/:id', isAuthenticated, (req, res) => {
     const tripId = req.params.tripId;
     const id = req.params.id;
-
-    const sql = `
-        SELECT *
-        FROM itineraries
-        WHERE id = ? AND trip_id = ?
-    `;
+    const sql = `SELECT * FROM itineraries WHERE id = ? AND trip_id = ?`;
 
     db.query(sql, [id, tripId], (err, results) => {
-
-        if (err) {
-            console.log(err);
-            return res.send("Database Error");
-        }
-
-        if (results.length === 0) {
-            return res.send("Location not found");
-        }
-
-        res.render("editLocation", {
-            itinerary: results[0],
-            tripId: tripId
-        });
-
+        if (err) { console.log(err); return res.send("Database Error"); }
+        if (results.length === 0) return res.send("Location not found");
+        res.render("editLocation", { itinerary: results[0], tripId: tripId });
     });
-
 });
-// Update itinerary route
+
 app.post('/trip/:tripId/edit/:id', isAuthenticated, (req, res) => {
-
     const tripId = req.params.tripId;
     const id = req.params.id;
+    const { location_name, latitude, longitude, visit_time } = req.body;
 
-    const {
-        location_name,
-        latitude,
-        longitude,
-        visit_time
-    } = req.body;
+    const sql = `UPDATE itineraries SET location_name=?, latitude=?, longitude=?, visit_time=? WHERE id=? AND trip_id=?`;
 
-    const sql = `
-        UPDATE itineraries
-        SET
-            location_name=?,
-            latitude=?,
-            longitude=?,
-            visit_time=?
-        WHERE id=? AND trip_id=?
-    `;
-
-    db.query(sql,
-        [
-            location_name,
-            latitude,
-            longitude,
-            visit_time,
-            id,
-            tripId
-        ],
-        (err) => {
-
-            if (err) {
-                console.log(err);
-                return res.send("Database Error");
-            }
-
-            res.redirect("/trip/" + tripId);
-
-        });
-
+    db.query(sql, [location_name, latitude, longitude, visit_time, id, tripId], (err) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+        res.redirect("/trip/" + tripId);
+    });
 });
-// Delete itinerary route
- app.post('/trip/:tripId/delete/:id', isAuthenticated, (req, res) => {
 
+app.post('/trip/:tripId/delete/:id', isAuthenticated, (req, res) => {
     const tripId = req.params.tripId;
     const id = req.params.id;
+    const sql = `DELETE FROM itineraries WHERE id=? AND trip_id=?`;
 
-    const sql = `
-        DELETE
-        FROM itineraries
-        WHERE id=? AND trip_id=?
-    `;
-
-    db.query(sql,
-        [id, tripId],
-        (err) => {
-
-            if (err) {
-                console.log(err);
-                return res.send("Database Error");
-            }
-
-            res.redirect("/trip/" + tripId);
-
-        });
-
+    db.query(sql, [id, tripId], (err) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+        res.redirect("/trip/" + tripId);
+    });
 });
 
 const PORT = process.env.PORT || 3000;

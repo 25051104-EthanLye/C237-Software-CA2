@@ -14,50 +14,44 @@
     }
     .profile-btn:hover { background: var(--white); box-shadow: 0 5px 15px rgba(153, 189, 188, 0.3); }
     
-    /* Profile Picture & Text */
     .profile-pic { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; }
     .profile-name { color: var(--teal); font-weight: 800; font-size: 16px; }
 
-    /* Dropdown Container */
     .profile-dropdown { position: relative; display: inline-block; }
 
-    /* Dropdown Menu Box */
+    /* FIX: The invisible bridge attached to the wrapper to cover the gap! */
+    .profile-dropdown::after {
+        content: ""; position: absolute; bottom: -15px; left: 0; width: 100%; height: 15px; background: transparent;
+    }
+
     .dropdown-content {
-        display: none; position: absolute; right: 0; top: 110%;
+        display: none; position: absolute; right: 0; top: 100%;
+        margin-top: 10px; 
         background-color: var(--white); min-width: 150px;
         box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-radius: 15px; overflow: hidden;
         z-index: 101; border: 1px solid rgba(162, 191, 206, 0.2);
     }
 
-    /* Show dropdown when hovering over the profile */
     .profile-dropdown:hover .dropdown-content { display: block; animation: dropFade 0.2s ease-out forwards; }
     @keyframes dropFade { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-    /* Dropdown Links (Sign Out) */
     .dropdown-content a {
         color: var(--dark-text); padding: 14px 20px; text-decoration: none;
         display: block; font-weight: 600; font-size: 15px; transition: all 0.2s; text-align: left;
     }
     .dropdown-content a:hover { background-color: var(--light-bg); color: var(--teal); padding-left: 25px; }
 
-    /* Standard Navigation Links (Flights, Hotels, Itinerary) */
     .nav-links a {
-        color: #99BDBC; /* Set exactly to the requested color */
-        text-decoration: none; 
-        font-weight: 800; 
-        font-size: 16px; 
-        transition: color 0.2s;
+        color: #99BDBC; text-decoration: none; font-weight: 800; font-size: 16px; transition: color 0.2s;
     }
-    .nav-links a:hover { color: var(--dark-text); } /* Darkens slightly on hover for visual feedback */
+    .nav-links a:hover { color: var(--dark-text); } 
 
-    /* Dark Background Overlay for Login Modal */
     .modal-overlay {
         display: none; position: fixed; z-index: 9999; left: 0; top: 0;
         width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); 
         backdrop-filter: blur(5px); align-items: center; justify-content: center;
     }
 
-    /* White Login Card inside Modal */
     .modal-card {
         background-color: var(--white); padding: 40px; border-radius: 20px;
         box-shadow: 0 10px 30px rgba(153, 189, 188, 0.4); border: 1px solid rgba(162, 191, 206, 0.3);
@@ -66,7 +60,6 @@
     }
     @keyframes dropIn { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-    /* Close (X) Button inside Modal */
     .close-btn { position: absolute; top: 15px; right: 20px; font-size: 28px; font-weight: 800; color: var(--blue); cursor: pointer; transition: color 0.3s; }
     .close-btn:hover { color: var(--teal); }
 </style>
@@ -74,77 +67,61 @@
 <!-- Main Navigation Bar -->
 <header style="width: 100%; padding: 15px 50px; display: flex; justify-content: space-between; align-items: center; background-color: var(--white); box-shadow: 0 4px 15px rgba(162, 191, 206, 0.2); position: relative; z-index: 100;">
     
-    <!-- Left Section: Logo -->
     <a href="/" style="text-decoration: none;">
         <div class="logo" style="font-size: 28px; font-weight: 800; color: var(--teal);">VividVoyage</div>
     </a>
     
-    <!-- Center Section: Always Visible Navigation Links -->
-    <!-- Position absolute left 50% forces perfect centering on the page -->
     <nav class="nav-links" style="position: absolute; left: 50%; transform: translateX(-50%); display: flex; gap: 30px;">
         <a href="/flights">Flights</a>
         <a href="/hotels">Hotels</a>
         <a href="/trips">Itinerary</a>
     </nav>
     
-    <!-- Right Section: Authentication Buttons -->
     <div class="auth-buttons" style="display: flex; gap: 20px; align-items: center;">
         
-        <!-- Render this if the user is logged in -->
         <% if (activeUser) { %>
-            
             <div class="profile-dropdown">
-                <!-- Clickable Profile Button (Goes to /profile) -->
                 <a href="/profile" style="text-decoration: none;">
                     <div class="profile-btn">
                         <img src="https://ui-avatars.com/api/?name=<%= activeUser.username %>&background=99BDBC&color=fff&bold=true" alt="Profile" class="profile-pic">
                         <span class="profile-name"><%= activeUser.username %></span>
                     </div>
                 </a>
-                
-                <!-- Hover Dropdown Menu -->
                 <div class="dropdown-content">
                     <a href="/logout" style="color: #cc0000;">Sign Out</a>
                 </div>
             </div>
 
-        <!-- Render this if the user is logged out -->
         <% } else { %>
-            
-            <!-- Login and Register Buttons -->
             <button onclick="openLoginModal()" class="btn" style="background: rgba(255,255,255,0.9); color: var(--teal); border: 2px solid var(--teal); padding: 10px 25px; border-radius: 30px; font-weight: 800; cursor: pointer;">Sign In</button>
             <a href="/register" class="btn btn-register" style="padding: 12px 25px; border-radius: 30px; text-decoration: none; font-weight: 800;">Register Now</a>
-        
         <% } %>
     </div>
 </header>
 
-<!-- Hidden Login Popup Modal -->
+<!-- Hidden Login Modal -->
 <div id="loginModal" class="modal-overlay">
     <div class="modal-card">
         <span class="close-btn" onclick="closeLoginModal()">&times;</span>
         <h1 style="color: var(--teal); font-size: 32px; font-weight: 800; margin-bottom: 10px;">Welcome Back</h1>
         <p style="color: #888; margin-bottom: 25px;">Sign in to continue your journey.</p>
 
-        <!-- Display Red Error Messages -->
         <% if (loginErrors.length > 0) { %>
             <div style="background-color: #ffe6e6; color: #cc0000; padding: 15px; border-radius: 10px; margin-bottom: 20px; font-weight: 600; font-size: 14px;">
                 <% loginErrors.forEach(function(error) { %> <p><%= error %></p> <% }); %>
             </div>
         <% } %>
 
-        <!-- Display Green Success Messages -->
         <% if (successMsgs.length > 0) { %>
             <div style="background-color: #e6ffed; color: #009933; padding: 15px; border-radius: 10px; margin-bottom: 20px; font-weight: 600; font-size: 14px;">
                 <% successMsgs.forEach(function(msg) { %> <p><%= msg %></p> <% }); %>
             </div>
         <% } %>
 
-        <!-- Login Form -->
         <form action="/login" method="POST" style="text-align: left;">
             <div style="margin-bottom: 20px;">
-                <label style="display: block; font-size: 14px; color: var(--teal); font-weight: 800; margin-bottom: 8px; text-transform: uppercase;">Email Address</label>
-                <input type="email" name="email" placeholder="hello@example.com" required style="width: 100%; padding: 14px; border: 2px solid var(--blue); border-radius: 12px; font-size: 16px; outline: none; color: var(--dark-text);">
+                <label style="display: block; font-size: 14px; color: var(--teal); font-weight: 800; margin-bottom: 8px; text-transform: uppercase;">Username</label>
+                <input type="text" name="username" placeholder="Enter your username" required style="width: 100%; padding: 14px; border: 2px solid var(--blue); border-radius: 12px; font-size: 16px; outline: none; color: var(--dark-text);">
             </div>
             
             <div style="margin-bottom: 25px;">
@@ -162,21 +139,16 @@
     document.addEventListener('DOMContentLoaded', () => {
         const loginModalElement = document.getElementById('loginModal');
 
-        // Functions to show and hide the modal
-        window.openLoginModal = function() {
-            if (loginModalElement) loginModalElement.style.display = 'flex';
-        };
+        // Show/Hide Login
+        window.openLoginModal = function() { if (loginModalElement) loginModalElement.style.display = 'flex'; };
+        window.closeLoginModal = function() { if (loginModalElement) loginModalElement.style.display = 'none'; };
 
-        window.closeLoginModal = function() {
-            if (loginModalElement) loginModalElement.style.display = 'none';
-        };
-
-        // Closes modal if clicking on the dark background
+        // Click off to close
         window.onclick = function(event) {
             if (event.target === loginModalElement) closeLoginModal();
         };
 
-        // Checks for messages from the server and auto-opens the modal if needed
+        // Decides if the modal should automatically pop open based on server messages
         const shouldOpenModal = <%= (loginErrors.length > 0 || successMsgs.length > 0) ? 'true' : 'false' %>;
         if (shouldOpenModal) {
             setTimeout(() => { openLoginModal(); }, 100);

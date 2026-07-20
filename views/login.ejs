@@ -175,9 +175,9 @@
         <!-- Action="/login" tells it to send the data to your app.post('/login') route -->
         <form action="/login" method="POST">
             <div class="form-group">
-                <label for="email">Email Address</label>
-                <!-- name="email" is crucial. This is how req.body.email finds the data in app.js -->
-                <input type="email" id="email" name="email" class="form-control" placeholder="hello@example.com" required>
+                <label for="username">User Name</label>
+                <!-- name="username" is crucial. This is how req.body.username finds the data in app.js -->
+                <input type="text" id="username" name="username" class="form-control" placeholder="Enter your user name" required>
             </div>
             
             <div class="form-group">
