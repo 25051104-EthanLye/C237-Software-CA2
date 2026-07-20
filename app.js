@@ -31,6 +31,12 @@ app.use(session({
 
 app.use(flash());
 
+// middleware to make flash messages available in all views
+app.use((req, res, next) => {
+    res.locals.messages = req.flash();
+    next();
+});
+
 // --- REGISTRATION VALIDATION MIDDLEWARE ---
 const validateRegistration = (req, res, next) => {
     const { username, email, password, contact } = req.body;
@@ -60,6 +66,7 @@ const isAuthenticated = (req, res, next) => {
 
 // --- PATHS --- //
 
+// Ethan's Paths
 // 1. HOME ROUTE
 app.get('/', (req, res) => {
     res.render('index', { 
@@ -143,6 +150,7 @@ app.get('/logout', (req, res) => {
     res.redirect('/');
 });
 
+// End of Ethan's Paths
 
 // 6. ITINERARY ROUTE
 app.get('/trips', isAuthenticated, (req,res)=>{
