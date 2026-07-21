@@ -29,21 +29,18 @@ app.use(express.static('public'));
 app.use(session({
     secret: 'my_super_secret_key', 
     resave: false,
-    saveUninitialized: false
+    saveUninitialized: false,
+    // NEW: Save the cookie for 30 days so the user stays logged in after closing the browser
+    cookie: {
+        maxAge: 1000 * 60 * 60 * 24 * 30 // 30 days in milliseconds
+    }
 }));
 
 app.use(flash());
 
-// NEW: Configure where and how Multer saves the uploaded images
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, 'public/uploads/'); // Saves files to the public/uploads folder
-    },
-    filename: function (req, file, cb) {
-        // Renames file to "username-timestamp.jpg" to prevent overriding duplicate names
-        cb(null, req.session.user.username + '-' + Date.now() + path.extname(file.originalname));
-    }
-});
+// --- NEW: Configure Multer to use Memory Storage (RAM) instead of folders ---
+// This allows us to intercept the file buffer and convert it for the database
+const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 // --- GLOBAL VARIABLES MIDDLEWARE ---
@@ -125,7 +122,7 @@ app.post('/register', validateRegistration, (req, res) => {
     });
 });
 
-// 4. LOGIN POST ROUTE (Reverted to log in immediately upon correct credentials)
+// 4. LOGIN POST ROUTE
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
     
@@ -139,11 +136,9 @@ app.post('/login', (req, res) => {
         if (err) throw err;
         
         if (results.length > 0) {
-            // Log the user in directly!
             req.session.user = results[0]; 
             req.session.save(() => res.redirect('/')); 
         } else {
-            // Incorrect credentials
             req.flash('error', 'Incorrect username or password. Please try again.');
             req.session.save(() => res.redirect('/')); 
         }
@@ -160,7 +155,6 @@ app.get('/logout', (req, res) => {
 
 // Render the Profile Page
 app.get('/profile', isAuthenticated, (req, res) => {
-    // Fetch the most up-to-date user info directly from the database
     const sql = 'SELECT * FROM users WHERE id = ?';
     db.query(sql, [req.session.user.id], (err, results) => {
         if (err) { console.log(err); return res.send("Database Error"); }
@@ -179,8 +173,6 @@ app.post('/profile/edit', isAuthenticated, (req, res) => {
     let sql;
     let params;
 
-    // If the user typed a new password, hash it and update it.
-    // Otherwise, skip updating the password column.
     if (password && password.trim() !== "") {
         sql = 'UPDATE users SET username = ?, email = ?, contact = ?, password = SHA1(?) WHERE id = ?';
         params = [username, email, contact, password, req.session.user.id];
@@ -196,7 +188,6 @@ app.post('/profile/edit', isAuthenticated, (req, res) => {
             return res.redirect('/profile'); 
         }
         
-        // Instantly update the session so the Navbar reflects the new username
         req.session.user.username = username;
         req.session.user.email = email;
         req.session.user.contact = contact;
@@ -206,43 +197,47 @@ app.post('/profile/edit', isAuthenticated, (req, res) => {
     });
 });
 
-// --- NEW ROUTE: Upload Profile Picture ---
+// --- UPDATED ROUTE: Upload Profile Picture to Database ---
 app.post('/profile/upload-picture', isAuthenticated, upload.single('profile_picture'), (req, res) => {
     if (!req.file) {
         req.flash('error', 'Please select an image to upload.');
         return res.redirect('/profile');
     }
 
-    const filename = req.file.filename;
-    // Save the new filename into the user's database record
+    // 1. Convert the binary image buffer into a Base64 string
+    const base64Image = req.file.buffer.toString('base64');
+    const mimeType = req.file.mimetype;
+    
+    // 2. Create the full Data URI string (this is what the browser reads)
+    const imageUri = `data:${mimeType};base64,${base64Image}`;
+
+    // 3. Save the giant text string directly into the database
     const sql = 'UPDATE users SET profile_picture = ? WHERE id = ?';
     
-    db.query(sql, [filename, req.session.user.id], (err, results) => {
-        if (err) { console.log(err); return res.send("Database Error"); }
+    db.query(sql, [imageUri, req.session.user.id], (err, results) => {
+        if (err) { console.log(err); return res.send("Database Error - Ensure column is LONGTEXT"); }
         
-        // Update the active session so the Navbar updates instantly without needing to log back in
-        req.session.user.profile_picture = filename; 
+        // 4. Update session
+        req.session.user.profile_picture = imageUri; 
         req.flash('success', 'Profile picture updated successfully!');
         res.redirect('/profile');
     });
 });
 
-// --- NEW ROUTE: Delete Profile Picture ---
+// --- ROUTE: Delete Profile Picture ---
 app.post('/profile/delete-picture', isAuthenticated, (req, res) => {
-    // Set the column back to NULL in the database
     const sql = 'UPDATE users SET profile_picture = NULL WHERE id = ?';
     
     db.query(sql, [req.session.user.id], (err, results) => {
         if (err) { console.log(err); return res.send("Database Error"); }
         
-        // Remove the picture from the active session
         req.session.user.profile_picture = null; 
         req.flash('success', 'Profile picture removed.');
         res.redirect('/profile');
     });
 });
 // ------------------------------------------------------- Ethan's Path end
-
+// ------------------------------------------------------- Rui Qi's Path start
 // 6. ITINERARY ROUTES
 app.get('/trips', isAuthenticated, (req,res)=>{
     const sql=`
@@ -357,6 +352,30 @@ app.post('/trip/:tripId/delete/:id', isAuthenticated, (req, res) => {
         res.redirect("/trip/" + tripId);
     });
 });
+
+app.post('/trip/delete/:id', isAuthenticated, (req,res)=>{
+
+    const id = req.params.id;
+
+    const sql = `
+        DELETE FROM trips
+        WHERE id=?
+    `;
+
+    db.query(sql,[id],(err)=>{
+
+        if(err){
+            console.log(err);
+            return res.send("Database Error");
+        }
+
+        res.redirect("/trips");
+
+    });
+
+});
+
+// ------------------------------------------------------- Rui Qi's Path end
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

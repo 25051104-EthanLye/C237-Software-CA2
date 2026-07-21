@@ -93,6 +93,24 @@
         background-color: var(--cadet-grey);
     }
 
+    /* Delete Picture Button Styling */
+    .btn-delete-pic {
+        background-color: transparent;
+        color: #cc0000;
+        border: 2px solid #cc0000;
+        padding: 6px 15px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 800;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin-top: 20px;
+    }
+
+    .btn-delete-pic:hover {
+        background-color: #ffe6e6;
+    }
+
     /* --- Main Content: Forms & Actions --- */
     .profile-main {
         display: flex;
@@ -208,12 +226,30 @@
     <!-- Sidebar: Greeting & Picture -->
     <div class="profile-sidebar">
         <div class="profile-image-container">
-            <!-- Using UI Avatars default, but script below allows visual photo upload preview -->
-            <img src="https://ui-avatars.com/api/?name=<%= userData.username %>&background=99BDBC&color=fff&size=150" id="profilePicPreview" alt="Profile Picture">
             
-            <label for="profileUpload" class="image-upload-btn" title="Upload New Picture">📷</label>
-            <input type="file" id="profileUpload" style="display: none;" accept="image/*">
+            <!-- DYNAMIC IMAGE LOGIC -->
+            <% if (userData.profile_picture) { %>
+                <!-- Removed /uploads/ prefix so it successfully renders the database Base64 text -->
+                <img src="<%= userData.profile_picture %>" id="profilePicPreview" alt="Profile Picture">
+            <% } else { %>
+                <img src="https://ui-avatars.com/api/?name=<%= userData.username %>&background=99BDBC&color=fff&size=150" id="profilePicPreview" alt="Default Avatar">
+            <% } %>
+            
+            <!-- UPLOAD FORM -->
+            <form id="uploadForm" action="/profile/upload-picture" method="POST" enctype="multipart/form-data">
+                <label for="profileUpload" class="image-upload-btn" title="Upload New Picture">📷</label>
+                <!-- Name must exactly match "upload.single('profile_picture')" in app.js -->
+                <input type="file" id="profileUpload" name="profile_picture" style="display: none;" accept="image/*">
+            </form>
+
         </div>
+
+        <!-- REMOVE PICTURE FORM (Only shows if a picture exists in the DB) -->
+        <% if (userData.profile_picture) { %>
+            <form action="/profile/delete-picture" method="POST">
+                <button type="submit" class="btn-delete-pic">🗑️ Remove Picture</button>
+            </form>
+        <% } %>
         
         <h1 class="profile-greeting">Welcome back,<br><%= userData.username %>!</h1>
         <p class="profile-subtext">Ready for your next relaxing getaway?</p>
@@ -275,16 +311,12 @@
     </div>
 </div>
 
-<!-- JavaScript to visually preview the uploaded profile picture -->
+<!-- JavaScript to auto-submit the image when selected -->
 <script>
     document.getElementById('profileUpload').addEventListener('change', function(event) {
-        const file = event.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('profilePicPreview').src = e.target.result;
-            }
-            reader.readAsDataURL(file);
+        if (event.target.files.length > 0) {
+            // Automatically submit the form to the backend to save the picture
+            document.getElementById('uploadForm').submit();
         }
     });
 </script>
