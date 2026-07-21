@@ -237,6 +237,228 @@ app.post('/profile/delete-picture', isAuthenticated, (req, res) => {
     });
 });
 // ------------------------------------------------------- Ethan's Path end
+
+//--------------------------------------------------------Shao Feng's Path start
+// --- MEMBER 2: FLIGHT BOOKINGS PATHS --- //
+
+// 7. BROWSE / SEARCH FLIGHTS
+app.get('/flights', (req, res) => {
+
+    const sql = `SELECT * FROM flights ORDER BY departure_date ASC, departure_time ASC`;
+
+    db.query(sql, (err, results) => {
+
+        if (err) {
+            console.log(err);
+            return res.send("Database Error");
+        }
+
+        res.render('flights', {
+            user: req.session.user,
+            flights: results
+        });
+
+    });
+
+});
+
+// 7b. HOMEPAGE SEARCH WIDGET -> redirects into /flights with a destination filter
+app.get('/search', (req, res) => {
+    const { destination } = req.query;
+    res.redirect('/flights' + (destination ? '?destination=' + encodeURIComponent(destination) : ''));
+});
+
+// 7c. CITY AUTOCOMPLETE - returns destinations from the flights table matching what's typed
+app.get('/flights/search-cities', (req, res) => {
+
+    const q = req.query.q || '';
+
+    const sql = `
+        SELECT DISTINCT destination
+        FROM flights
+        WHERE destination LIKE CONCAT(?, '%')
+        ORDER BY destination ASC
+        LIMIT 10
+    `;
+
+    db.query(sql, [q], (err, results) => {
+
+        if (err) {
+            console.log(err);
+            return res.json([]);
+        }
+
+        res.json(results.map(row => row.destination));
+
+    });
+
+});
+
+// 8. BOOK FLIGHT - SHOW FORM (Create)
+app.get('/flights/book/:flightId', isAuthenticated, (req, res) => {
+
+    const flightId = req.params.flightId;
+
+    const sql = `SELECT * FROM flights WHERE id = ?`;
+
+    db.query(sql, [flightId], (err, results) => {
+
+        if (err) {
+            console.log(err);
+            return res.send("Database Error");
+        }
+
+        if (results.length === 0) {
+            return res.send("Flight not found");
+        }
+
+        res.render('bookFlight', {
+            flight: results[0]
+        });
+
+    });
+
+});
+
+// 9. BOOK FLIGHT - INSERT (Create)
+app.post('/flights/book/:flightId', isAuthenticated, (req, res) => {
+
+    const flightId = req.params.flightId;
+    const { seat_preference } = req.body;
+
+    if (!seat_preference) {
+        req.flash('error', 'Please select a seat preference.');
+        return res.redirect('/flights/book/' + flightId);
+    }
+
+    const sql = `
+        INSERT INTO flight_bookings (user_id, flight_id, seat_preference)
+        VALUES (?, ?, ?)
+    `;
+
+    db.query(sql, [req.session.user.id, flightId, seat_preference], (err) => {
+
+        if (err) {
+            console.log(err);
+            return res.send("Database Error");
+        }
+
+        req.flash('success', 'Flight booked successfully!');
+        res.redirect('/bookings');
+
+    });
+
+});
+
+// 10. VIEW BOOKINGS (Read) - joined with flights for details
+app.get('/bookings', isAuthenticated, (req, res) => {
+
+    const sql = `
+        SELECT flight_bookings.*, flights.flight_number, flights.destination,
+               flights.departure_date, flights.departure_time, flights.duration, flights.price
+        FROM flight_bookings
+        JOIN flights ON flight_bookings.flight_id = flights.id
+        WHERE flight_bookings.user_id = ?
+        ORDER BY flights.departure_date ASC, flights.departure_time ASC
+    `;
+
+    db.query(sql, [req.session.user.id], (err, results) => {
+
+        if (err) {
+            console.log(err);
+            return res.send("Database Error");
+        }
+
+        res.render('bookings', {
+            bookings: results
+        });
+
+    });
+
+});
+
+// 11. CHANGE SEAT - SHOW FORM (Update)
+app.get('/bookings/:id/seat', isAuthenticated, (req, res) => {
+
+    const id = req.params.id;
+
+    const sql = `
+        SELECT flight_bookings.*, flights.flight_number, flights.destination,
+               flights.departure_date, flights.departure_time
+        FROM flight_bookings
+        JOIN flights ON flight_bookings.flight_id = flights.id
+        WHERE flight_bookings.id = ? AND flight_bookings.user_id = ?
+    `;
+
+    db.query(sql, [id, req.session.user.id], (err, results) => {
+
+        if (err) {
+            console.log(err);
+            return res.send("Database Error");
+        }
+
+        if (results.length === 0) {
+            return res.send("Booking not found");
+        }
+
+        res.render('changeSeat', {
+            booking: results[0]
+        });
+
+    });
+
+});
+
+// 12. CHANGE SEAT - UPDATE (Update)
+app.post('/bookings/:id/seat', isAuthenticated, (req, res) => {
+
+    const id = req.params.id;
+    const { seat_preference } = req.body;
+
+    const sql = `
+        UPDATE flight_bookings
+        SET seat_preference = ?
+        WHERE id = ? AND user_id = ?
+    `;
+
+    db.query(sql, [seat_preference, id, req.session.user.id], (err) => {
+
+        if (err) {
+            console.log(err);
+            return res.send("Database Error");
+        }
+
+        req.flash('success', 'Seat preference updated successfully!');
+        res.redirect('/bookings');
+
+    });
+
+});
+
+// 13. CANCEL BOOKING (Delete)
+app.post('/bookings/:id/cancel', isAuthenticated, (req, res) => {
+
+    const id = req.params.id;
+
+    const sql = `DELETE FROM flight_bookings WHERE id = ? AND user_id = ?`;
+
+    db.query(sql, [id, req.session.user.id], (err) => {
+
+        if (err) {
+            console.log(err);
+            return res.send("Database Error");
+        }
+
+        req.flash('success', 'Booking cancelled.');
+        res.redirect('/bookings');
+
+    });
+
+});
+
+
+//--------------------------------------------------------Shao Feng's Path end
+
 // ------------------------------------------------------- Rui Qi's Path start
 // 6. ITINERARY ROUTES
 app.get('/trips', isAuthenticated, (req,res)=>{
