@@ -5,8 +5,11 @@
     const successMsgs = typeof messages !== 'undefined' ? messages : [];
 %>
 
+<!-- FIX 1: Load Bootstrap 5 for automatic responsiveness and dropdown bounds management -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
 <style>
-    /* Profile Button Styling */
+    /* Profile Button Styling (Kept your custom aesthetic) */
     .profile-btn {
         display: flex; align-items: center; gap: 12px;
         background: var(--light-bg); border: 2px solid var(--teal);
@@ -17,35 +20,13 @@
     .profile-pic { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; }
     .profile-name { color: var(--teal); font-weight: 800; font-size: 16px; }
 
-    .profile-dropdown { position: relative; display: inline-block; }
-
-    /* FIX: The invisible bridge attached to the wrapper to cover the gap! */
-    .profile-dropdown::after {
-        content: ""; position: absolute; bottom: -15px; left: 0; width: 100%; height: 15px; background: transparent;
+    /* Customizing Bootstrap Nav Links */
+    .nav-link-custom {
+        color: #99BDBC !important; text-decoration: none; font-weight: 800; font-size: 16px; transition: color 0.2s;
     }
+    .nav-link-custom:hover { color: var(--dark-text) !important; } 
 
-    .dropdown-content {
-        display: none; position: absolute; right: 0; top: 100%;
-        margin-top: 10px; 
-        background-color: var(--white); min-width: 150px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-radius: 15px; overflow: hidden;
-        z-index: 101; border: 1px solid rgba(162, 191, 206, 0.2);
-    }
-
-    .profile-dropdown:hover .dropdown-content { display: block; animation: dropFade 0.2s ease-out forwards; }
-    @keyframes dropFade { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-    .dropdown-content a {
-        color: var(--dark-text); padding: 14px 20px; text-decoration: none;
-        display: block; font-weight: 600; font-size: 15px; transition: all 0.2s; text-align: left;
-    }
-    .dropdown-content a:hover { background-color: var(--light-bg); color: var(--teal); padding-left: 25px; }
-
-    .nav-links a {
-        color: #99BDBC; text-decoration: none; font-weight: 800; font-size: 16px; transition: color 0.2s;
-    }
-    .nav-links a:hover { color: var(--dark-text); } 
-
+    /* Modal Styles */
     .modal-overlay {
         display: none; position: fixed; z-index: 9999; left: 0; top: 0;
         width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); 
@@ -64,40 +45,51 @@
     .close-btn:hover { color: var(--teal); }
 </style>
 
-<!-- Main Navigation Bar -->
-<header style="width: 100%; padding: 15px 50px; display: flex; justify-content: space-between; align-items: center; background-color: var(--white); box-shadow: 0 4px 15px rgba(162, 191, 206, 0.2); position: relative; z-index: 100;">
-    
-    <a href="/" style="text-decoration: none;">
-        <div class="logo" style="font-size: 28px; font-weight: 800; color: var(--teal);">VividVoyage</div>
-    </a>
-    
-    <nav class="nav-links" style="position: absolute; left: 50%; transform: translateX(-50%); display: flex; gap: 30px;">
-        <a href="/flights">Flights</a>
-        <a href="/hotels">Hotels</a>
-        <a href="/trips">Itinerary</a>
-    </nav>
-    
-    <div class="auth-buttons" style="display: flex; gap: 20px; align-items: center;">
+<!-- Main Navigation Bar (Rebuilt with Bootstrap) -->
+<nav class="navbar navbar-expand-lg bg-white sticky-top py-3 px-3 px-lg-5" style="box-shadow: 0 4px 15px rgba(162, 191, 206, 0.2);">
+    <div class="container-fluid p-0">
         
-        <% if (activeUser) { %>
-            <div class="profile-dropdown">
-                <a href="/profile" style="text-decoration: none;">
-                    <div class="profile-btn">
-                        <img src="https://ui-avatars.com/api/?name=<%= activeUser.username %>&background=99BDBC&color=fff&bold=true" alt="Profile" class="profile-pic">
-                        <span class="profile-name"><%= activeUser.username %></span>
+        <a class="navbar-brand" href="/" style="font-size: 28px; font-weight: 800; color: var(--teal);">VividVoyage</a>
+        
+        <!-- Mobile Toggle Button -->
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#vividNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <div class="collapse navbar-collapse justify-content-between" id="vividNav">
+            
+            <!-- Centered Links -->
+            <ul class="navbar-nav mx-auto gap-lg-4 mb-3 mb-lg-0 mt-3 mt-lg-0 text-center">
+                <li class="nav-item"><a class="nav-link nav-link-custom" href="/flights">Flights</a></li>
+                <li class="nav-item"><a class="nav-link nav-link-custom" href="/hotels">Hotels</a></li>
+                <li class="nav-item"><a class="nav-link nav-link-custom" href="/trips">Itinerary</a></li>
+            </ul>
+            
+            <!-- Right side Auth -->
+            <div class="d-flex align-items-center justify-content-center gap-3">
+                <% if (activeUser) { %>
+                    <!-- FIX 1 (cont): dropdown-menu-end forces the menu to drop inside the screen bounds -->
+                    <div class="dropdown">
+                        <div class="profile-btn" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <img src="https://ui-avatars.com/api/?name=<%= activeUser.username %>&background=99BDBC&color=fff&bold=true" alt="Profile" class="profile-pic">
+                            <span class="profile-name"><%= activeUser.username %></span>
+                        </div>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2 p-2" style="border-radius: 15px; border: 1px solid rgba(162, 191, 206, 0.2); min-width: 200px;">
+                            <li><a class="dropdown-item fw-bold py-2 rounded-3" href="/profile" style="color: var(--dark-text);">Profile Overview</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item fw-bold py-2 rounded-3 text-danger" href="/logout">Sign Out</a></li>
+                        </ul>
                     </div>
-                </a>
-                <div class="dropdown-content">
-                    <a href="/logout" style="color: #cc0000;">Sign Out</a>
-                </div>
+
+                <% } else { %>
+                    <button onclick="openLoginModal()" class="btn" style="background: rgba(255,255,255,0.9); color: var(--teal); border: 2px solid var(--teal); padding: 10px 25px; border-radius: 30px; font-weight: 800; cursor: pointer;">Sign In</button>
+                    <a href="/register" class="btn btn-register" style="padding: 12px 25px; border-radius: 30px; text-decoration: none; font-weight: 800;">Register Now</a>
+                <% } %>
             </div>
 
-        <% } else { %>
-            <button onclick="openLoginModal()" class="btn" style="background: rgba(255,255,255,0.9); color: var(--teal); border: 2px solid var(--teal); padding: 10px 25px; border-radius: 30px; font-weight: 800; cursor: pointer;">Sign In</button>
-            <a href="/register" class="btn btn-register" style="padding: 12px 25px; border-radius: 30px; text-decoration: none; font-weight: 800;">Register Now</a>
-        <% } %>
+        </div>
     </div>
-</header>
+</nav>
 
 <!-- Hidden Login Modal -->
 <div id="loginModal" class="modal-overlay">
@@ -108,13 +100,13 @@
 
         <% if (loginErrors.length > 0) { %>
             <div style="background-color: #ffe6e6; color: #cc0000; padding: 15px; border-radius: 10px; margin-bottom: 20px; font-weight: 600; font-size: 14px;">
-                <% loginErrors.forEach(function(error) { %> <p><%= error %></p> <% }); %>
+                <% loginErrors.forEach(function(error) { %> <p class="mb-0"><%= error %></p> <% }); %>
             </div>
         <% } %>
 
         <% if (successMsgs.length > 0) { %>
             <div style="background-color: #e6ffed; color: #009933; padding: 15px; border-radius: 10px; margin-bottom: 20px; font-weight: 600; font-size: 14px;">
-                <% successMsgs.forEach(function(msg) { %> <p><%= msg %></p> <% }); %>
+                <% successMsgs.forEach(function(msg) { %> <p class="mb-0"><%= msg %></p> <% }); %>
             </div>
         <% } %>
 
@@ -133,6 +125,9 @@
         </form>
     </div>
 </div>
+
+<!-- Load Bootstrap JS to enable the Dropdown and Mobile Menu to function -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <!-- Modal Logic Script -->
 <script>

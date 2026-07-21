@@ -2,6 +2,9 @@ const express = require('express');
 const mysql = require('mysql2');
 const flash = require('connect-flash');
 const session = require('express-session');
+// Edit profile pic
+const multer = require('multer');
+const path = require('path');
 
 const app = express();
 
@@ -30,6 +33,18 @@ app.use(session({
 }));
 
 app.use(flash());
+
+// NEW: Configure where and how Multer saves the uploaded images
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'public/uploads/'); // Saves files to the public/uploads folder
+    },
+    filename: function (req, file, cb) {
+        // Renames file to "username-timestamp.jpg" to prevent overriding duplicate names
+        cb(null, req.session.user.username + '-' + Date.now() + path.extname(file.originalname));
+    }
+});
+const upload = multer({ storage: storage });
 
 // --- GLOBAL VARIABLES MIDDLEWARE ---
 app.use((req, res, next) => {
@@ -190,9 +205,44 @@ app.post('/profile/edit', isAuthenticated, (req, res) => {
         res.redirect('/profile');
     });
 });
+
+// --- NEW ROUTE: Upload Profile Picture ---
+app.post('/profile/upload-picture', isAuthenticated, upload.single('profile_picture'), (req, res) => {
+    if (!req.file) {
+        req.flash('error', 'Please select an image to upload.');
+        return res.redirect('/profile');
+    }
+
+    const filename = req.file.filename;
+    // Save the new filename into the user's database record
+    const sql = 'UPDATE users SET profile_picture = ? WHERE id = ?';
+    
+    db.query(sql, [filename, req.session.user.id], (err, results) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+        
+        // Update the active session so the Navbar updates instantly without needing to log back in
+        req.session.user.profile_picture = filename; 
+        req.flash('success', 'Profile picture updated successfully!');
+        res.redirect('/profile');
+    });
+});
+
+// --- NEW ROUTE: Delete Profile Picture ---
+app.post('/profile/delete-picture', isAuthenticated, (req, res) => {
+    // Set the column back to NULL in the database
+    const sql = 'UPDATE users SET profile_picture = NULL WHERE id = ?';
+    
+    db.query(sql, [req.session.user.id], (err, results) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+        
+        // Remove the picture from the active session
+        req.session.user.profile_picture = null; 
+        req.flash('success', 'Profile picture removed.');
+        res.redirect('/profile');
+    });
+});
 // ------------------------------------------------------- Ethan's Path end
 
-// ------------------------------------------------------- Rui Qi's Path start
 // 6. ITINERARY ROUTES
 app.get('/trips', isAuthenticated, (req,res)=>{
     const sql=`
@@ -307,30 +357,6 @@ app.post('/trip/:tripId/delete/:id', isAuthenticated, (req, res) => {
         res.redirect("/trip/" + tripId);
     });
 });
-
-app.post('/trip/delete/:id', isAuthenticated, (req,res)=>{
-
-    const id = req.params.id;
-
-    const sql = `
-        DELETE FROM trips
-        WHERE id=?
-    `;
-
-    db.query(sql,[id],(err)=>{
-
-        if(err){
-            console.log(err);
-            return res.send("Database Error");
-        }
-
-        res.redirect("/trips");
-
-    });
-
-});
-
-// ------------------------------------------------------- Rui Qi's Path end
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
