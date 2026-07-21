@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Book Flight | VividVoyage</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<%- include('partials/navbar') %>
+
+<div class="container py-5" style="margin-top:120px;">
+<div class="row justify-content-center">
+<div class="col-md-6">
+<div class="card shadow">
+
+    <div class="card-header" style="background-color:#99BDBC; color:white;">
+        <h3>Book Flight <%= flight.flight_number %></h3>
+    </div>
+
+    <div class="card-body">
+
+        <div class="mb-3">
+            <strong>Destination:</strong> <%= flight.destination %>
+        </div>
+        <div class="mb-3">
+            <strong>Date:</strong> <%= new Date(flight.departure_date).toLocaleDateString() %>
+            &nbsp;|&nbsp; <strong>Time:</strong> <%= flight.departure_time %>
+        </div>
+        <div class="mb-4">
+            <strong>Price:</strong> $<%= Number(flight.price).toFixed(2) %>
+        </div>
+
+        <form action="/flights/book/<%= flight.id %>" method="POST">
+
+            <div class="mb-3">
+                <label class="form-label">Seat Preference</label>
+                <select name="seat_preference" class="form-select" required>
+                    <option value="">-- Select --</option>
+                    <option value="Window">Window</option>
+                    <option value="Middle">Middle</option>
+                    <option value="Aisle">Aisle</option>
+                </select>
+            </div>
+
+            <button class="btn btn-primary">Confirm Booking</button>
+            <a href="/flights" class="btn btn-secondary">Cancel</a>
+
+        </form>
+
+    </div>
+</div>
+</div>
+</div>
+</div>
+
+</body>
+</html>

@@ -322,19 +322,15 @@
                     <label>Departure Date</label>
                     <input type="date" name="date" required>
                 </div>
-                
-                <!-- FIX 2: Replaced <select> with direct side-by-side number inputs for manual typing -->
-                <div style="display: flex; gap: 15px; flex: 1; min-width: 200px;">
-                    <div class="input-group">
-                        <label>Adults</label>
-                        <input type="number" name="adults" min="1" value="1" required>
-                    </div>
-                    <div class="input-group">
-                        <label>Children</label>
-                        <input type="number" name="children" min="0" value="0" required>
-                    </div>
+                <div class="input-group">
+                    <label>Travelers</label>
+                    <select name="guests">
+                        <option>1 Adult, 0 Children</option>
+                        <option>2 Adults, 0 Children</option>
+                        <option>2 Adults, 1 Child</option>
+                        <option>2 Adults, 2 Children</option>
+                    </select>
                 </div>
-
                 <button type="submit" class="btn btn-register search-btn">Search</button>
             </form>
         </div>
