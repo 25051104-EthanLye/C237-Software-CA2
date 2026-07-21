@@ -23,6 +23,7 @@ db.connect((err) => {
     console.log('Connected to database');
 });
 
+
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static('public'));
 
