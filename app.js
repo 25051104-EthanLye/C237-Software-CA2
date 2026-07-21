@@ -192,6 +192,7 @@ app.post('/profile/edit', isAuthenticated, (req, res) => {
 });
 // ------------------------------------------------------- Ethan's Path end
 
+// ------------------------------------------------------- Rui Qi's Path start
 // 6. ITINERARY ROUTES
 app.get('/trips', isAuthenticated, (req,res)=>{
     const sql=`
@@ -306,6 +307,30 @@ app.post('/trip/:tripId/delete/:id', isAuthenticated, (req, res) => {
         res.redirect("/trip/" + tripId);
     });
 });
+
+app.post('/trip/delete/:id', isAuthenticated, (req,res)=>{
+
+    const id = req.params.id;
+
+    const sql = `
+        DELETE FROM trips
+        WHERE id=?
+    `;
+
+    db.query(sql,[id],(err)=>{
+
+        if(err){
+            console.log(err);
+            return res.send("Database Error");
+        }
+
+        res.redirect("/trips");
+
+    });
+
+});
+
+// ------------------------------------------------------- Rui Qi's Path end
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

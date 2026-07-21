@@ -380,14 +380,24 @@
             <div class="d-grid gap-2">
 
                 <a
-
                     href="/trip/<%= trip.id %>"
-
                     class="btn btn-success btn-lg btn-open">
 
                     📍 Open Trip
 
                 </a>
+
+
+                <form 
+                    action="/trip/delete/<%= trip.id %>"
+                    method="POST"
+                    onsubmit="return confirm('Delete this trip?');">
+
+                    <button class="btn btn-danger btn-lg">
+                        🗑 Delete Trip
+                    </button>
+
+                </form>
 
             </div>
 
