@@ -90,6 +90,7 @@
                 <li class="nav-item"><a class="nav-link nav-link-custom" href="/flights">Flights</a></li>
                 <li class="nav-item"><a class="nav-link nav-link-custom" href="/hotels">Hotels</a></li>
                 <li class="nav-item"><a class="nav-link nav-link-custom" href="/trips">Itinerary</a></li>
+                <li class="nav-item"><a class="nav-link nav-link-custom" href="/reviews">Reviews</a></li>
             </ul>
             
             <!-- Right side Auth -->
@@ -180,7 +181,7 @@
         };
 
         // Decides if the modal should automatically pop open based on server messages
-        const shouldOpenModal = <%= (loginErrors.length > 0 || successMsgs.length > 0) ? 'true' : 'false' %>;
+        const shouldOpenModal = <%= (loginErrors.length > 0 || successMsgs.length > 0) %>;
         if (shouldOpenModal) {
             setTimeout(() => { openLoginModal(); }, 100);
         }

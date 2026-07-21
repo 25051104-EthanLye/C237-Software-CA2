@@ -611,7 +611,7 @@ app.get('/reviews', (req, res) => {
 
 app.post('/reviews/add', isAuthenticated, (req, res) => {
     const { name, destination, rating, text } = req.body;
-    const sql = 'INSERT INTO reviews (user_id, name, destination, rating, text) VALUES (?, ?, ?, ?, ?)';
+    const sql = 'INSERT INTO reviews (id, user_id, target_destination, rating, comment) VALUES (?, ?, ?, ?, ?)';
     db.query(sql, [req.session.user.id, name, destination, rating, text], (err) => {
         if (err) {
             console.log(err);
