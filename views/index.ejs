@@ -316,7 +316,8 @@
             <form class="search-form" action="/search" method="GET">
                 <div class="input-group">
                     <label>Where to?</label>
-                    <input type="text" name="destination" placeholder="City or Airport..." required>
+                    <input type="text" name="destination" id="destinationInput" placeholder="City or Airport..." list="homeCitySuggestions" autocomplete="off" required>
+                    <datalist id="homeCitySuggestions"></datalist>
                 </div>
                 <div class="input-group">
                     <label>Departure Date</label>

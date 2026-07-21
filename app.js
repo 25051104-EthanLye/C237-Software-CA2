@@ -312,7 +312,7 @@ app.get('/flights/book/:flightId', isAuthenticated, (req, res) => {
             return res.send("Flight not found");
         }
 
-        res.render('bookFlight', {
+        res.render('bookFlights', {
             flight: results[0]
         });
 
