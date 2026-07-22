@@ -28,378 +28,442 @@
             color: var(--dark-text);
         }
 
-        /* --- BUTTON STYLES --- */
-        .btn {
-            padding: 12px 28px;
-            font-size: 16px;
-            font-weight: 600;
-            text-decoration: none;
-            border-radius: 30px;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            border: none;
-            display: inline-block;
-        }
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>VividVoyage - Travel the World</title>
+            <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800&display=swap" rel="stylesheet">
+            <style>
+                /* --- COLOR SCHEME & VARIABLES --- */
+                :root {
+                    --white: #FFFFFF;
+                    --peach: #E2C1AA;
+                    --teal: #99BDBC;
+                    --blue: #A2BFCE;
+                    --dark-text: #2C3E50;
+                    --light-bg: #F8F9FA;
+                }
 
-        .btn-register {
-            background-color: var(--peach);
-            color: var(--white);
-            box-shadow: 0 4px 15px rgba(226, 193, 170, 0.5);
-        }
+                * {
+                    margin: 0;
+                    padding: 0;
+                    box-sizing: border-box;
+                    font-family: 'Nunito', sans-serif;
+                }
 
-        .btn-register:hover {
-            background-color: #d1b099;
-            transform: translateY(-2px);
-        }
+                body {
+                    background-color: var(--white);
+                    color: var(--dark-text);
+                }
 
-        /* --- HERO CAROUSEL SECTION --- */
-        .hero {
-            position: relative;
-            height: 60vh;
-            min-height: 400px;
-            width: 100%;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-        }
+                /* --- BUTTON STYLES --- */
+                .btn {
+                    padding: 12px 28px;
+                    font-size: 16px;
+                    font-weight: 600;
+                    text-decoration: none;
+                    border-radius: 30px;
+                    transition: all 0.3s ease;
+                    cursor: pointer;
+                    border: none;
+                    display: inline-block;
+                }
 
-        .carousel-bg {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-size: cover;
-            background-position: center;
-            transition: opacity 1.5s ease-in-out; 
-            z-index: 1;
-            opacity: 0; 
-        }
+                .btn-register {
+                    background-color: var(--peach);
+                    color: var(--white);
+                    box-shadow: 0 4px 15px rgba(226, 193, 170, 0.5);
+                }
 
-        .carousel-bg.active {
-            opacity: 1; 
-        }
+                .btn-register:hover {
+                    background-color: #d1b099;
+                    transform: translateY(-2px);
+                }
 
-        .overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.2));
-            z-index: 2;
-        }
+                /* --- HERO CAROUSEL SECTION --- */
+                .hero {
+                    position: relative;
+                    height: 60vh;
+                    min-height: 400px;
+                    width: 100%;
+                    overflow: hidden;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex-direction: column;
+                }
 
-        .hero-content {
-            position: relative;
-            z-index: 3;
-            color: var(--white);
-            text-align: center;
-            margin-bottom: 40px;
-        }
+                .carousel-bg {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-size: cover;
+                    background-position: center;
+                    transition: opacity 1.5s ease-in-out; 
+                    z-index: 1;
+                    opacity: 0; 
+                }
 
-        .hero-content h1 {
-            font-size: 50px;
-            font-weight: 800;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
-        }
+                .carousel-bg.active {
+                    opacity: 1; 
+                }
 
-        .hero-content p {
-            font-size: 20px;
-            font-weight: 600;
-            text-shadow: 1px 1px 4px rgba(0,0,0,0.5);
-        }
+                .overlay {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.2));
+                    z-index: 2;
+                }
 
-        /* --- SEARCH WIDGET --- */
-        .search-widget {
-            position: relative;
-            z-index: 3;
-            background-color: var(--white);
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            width: 90%;
-            max-width: 1000px;
-        }
+                .hero-content {
+                    position: relative;
+                    z-index: 3;
+                    color: var(--white);
+                    text-align: center;
+                    margin-bottom: 40px;
+                }
 
-        .search-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 10px;
-        }
+                .hero-content h1 {
+                    font-size: 50px;
+                    font-weight: 800;
+                    margin-bottom: 10px;
+                    text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+                }
 
-        .search-tabs button {
-            background: none;
-            border: none;
-            font-size: 16px;
-            font-weight: 600;
-            color: #888;
-            cursor: pointer;
-            padding: 8px 16px;
-            border-radius: 20px;
-            transition: all 0.3s;
-        }
+                .hero-content p {
+                    font-size: 20px;
+                    font-weight: 600;
+                    text-shadow: 1px 1px 4px rgba(0,0,0,0.5);
+                }
 
-        .search-tabs button.active {
-            background-color: var(--dark-text);
-            color: var(--white);
-        }
+                /* --- SEARCH WIDGET --- */
+                .search-widget {
+                    position: relative;
+                    z-index: 3;
+                    background-color: var(--white);
+                    border-radius: 20px;
+                    padding: 20px;
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+                    width: 90%;
+                    max-width: 1000px;
+                }
 
-        .search-form {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-        }
+                .search-tabs {
+                    display: flex;
+                    gap: 10px;
+                    margin-bottom: 15px;
+                    border-bottom: 2px solid #eee;
+                    padding-bottom: 10px;
+                }
 
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            text-align: left;
-            flex: 1;
-            min-width: 150px;
-        }
+                .search-tabs button {
+                    background: none;
+                    border: none;
+                    font-size: 16px;
+                    font-weight: 600;
+                    color: #888;
+                    cursor: pointer;
+                    padding: 8px 16px;
+                    border-radius: 20px;
+                    transition: all 0.3s;
+                }
 
-        .input-group label {
-            font-size: 13px;
-            color: var(--teal);
-            font-weight: 800;
-            margin-bottom: 5px;
-            text-transform: uppercase;
-        }
+                .search-tabs button.active {
+                    background-color: var(--dark-text);
+                    color: var(--white);
+                }
 
-        .input-group input, .input-group select {
-            padding: 12px;
-            border: 1px solid var(--blue);
-            border-radius: 10px;
-            font-size: 15px;
-            color: var(--dark-text);
-            outline: none;
-        }
+                .search-form {
+                    display: flex;
+                    gap: 15px;
+                    align-items: center;
+                    justify-content: space-between;
+                    flex-wrap: wrap;
+                }
 
-        /* Autocomplete suggestions box for homepage search */
-        .suggestions-box {
-            position: absolute; background: #fff; width: 100%; max-width: 420px; z-index: 999;
-            border: 1px solid rgba(162,191,206,0.25); border-radius: 8px; margin-top: 6px; box-shadow: 0 8px 25px rgba(0,0,0,0.06);
-            display: none; max-height: 240px; overflow: auto;
-        }
-        .suggestion-item { padding: 10px 14px; cursor: pointer; font-weight:600; }
-        .suggestion-item:hover { background: #f4f7fb; }
+                .input-group {
+                    display: flex;
+                    flex-direction: column;
+                    text-align: left;
+                    flex: 1;
+                    min-width: 150px;
+                }
 
-        .search-btn {
-            padding: 14px 35px;
-            font-size: 18px;
-            height: 100%;
-            margin-top: 20px;
-        }
+                .input-group label {
+                    font-size: 13px;
+                    color: var(--teal);
+                    font-weight: 800;
+                    margin-bottom: 5px;
+                    text-transform: uppercase;
+                }
 
-        /* --- DISPLAY SECTIONS (FLIGHTS, HOTELS, ITINERARIES) --- */
-        .data-section {
-            padding: 40px 50px 80px 50px;
-            background-color: var(--white);
-        }
+                .input-group input, .input-group select {
+                    padding: 12px;
+                    border: 1px solid var(--blue);
+                    border-radius: 10px;
+                    font-size: 15px;
+                    color: var(--dark-text);
+                    outline: none;
+                }
 
-        .data-section.bg-light {
-            background-color: var(--light-bg);
-        }
+                /* Autocomplete suggestions box for homepage search */
+                .suggestions-box {
+                    position: absolute; background: #fff; width: 100%; max-width: 420px; z-index: 999;
+                    border: 1px solid rgba(162,191,206,0.25); border-radius: 8px; margin-top: 6px; box-shadow: 0 8px 25px rgba(0,0,0,0.06);
+                    display: none; max-height: 240px; overflow: auto;
+                }
+                .suggestion-item { padding: 10px 14px; cursor: pointer; font-weight:600; }
+                .suggestion-item:hover { background: #f4f7fb; }
 
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 40px;
-        }
+                .search-btn {
+                    padding: 14px 35px;
+                    font-size: 18px;
+                    height: 100%;
+                    margin-top: 20px;
+                }
 
-        .section-header h2 {
-            font-size: 32px;
-            color: var(--teal);
-        }
+                /* --- DISPLAY SECTIONS (FLIGHTS, HOTELS, ITINERARIES) --- */
+                .data-section {
+                    padding: 40px 50px 80px 50px;
+                    background-color: var(--white);
+                }
 
-        .view-all {
-            color: var(--blue);
-            text-decoration: none;
-            font-weight: 800;
-        }
+                .data-section.bg-light {
+                    background-color: var(--light-bg);
+                }
 
-        .view-all:hover {
-            color: var(--peach);
-        }
+                .section-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 40px;
+                }
 
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 30px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+                .section-header h2 {
+                    font-size: 32px;
+                    color: var(--teal);
+                }
 
-        /* Item Cards */
-        .item-card {
-            background-color: var(--white);
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 5px 20px rgba(162, 191, 206, 0.15);
-            transition: transform 0.3s ease;
-            border: 1px solid rgba(162, 191, 206, 0.2);
-        }
+                .view-all {
+                    color: var(--blue);
+                    text-decoration: none;
+                    font-weight: 800;
+                }
 
-        .item-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 8px 25px rgba(162, 191, 206, 0.3);
-        }
+                .view-all:hover {
+                    color: var(--peach);
+                }
 
-        .item-img {
-            height: 180px;
-            width: 100%;
-            background-color: var(--blue);
-            background-size: cover;
-            background-position: center;
-        }
+                .grid-container {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                    gap: 30px;
+                    max-width: 1200px;
+                    margin: 0 auto;
+                }
 
-        .item-details {
-            padding: 20px;
-        }
+                /* Item Cards */
+                .item-card {
+                    background-color: var(--white);
+                    border-radius: 20px;
+                    overflow: hidden;
+                    box-shadow: 0 5px 20px rgba(162, 191, 206, 0.15);
+                    transition: transform 0.3s ease;
+                    border: 1px solid rgba(162, 191, 206, 0.2);
+                }
 
-        .item-title {
-            font-size: 20px;
-            color: var(--dark-text);
-            margin-bottom: 5px;
-            font-weight: 800;
-        }
+                .item-card:hover {
+                    transform: translateY(-8px);
+                    box-shadow: 0 8px 25px rgba(162, 191, 206, 0.3);
+                }
 
-        .item-subtitle {
-            color: #888;
-            font-size: 14px;
-            margin-bottom: 15px;
-        }
+                .item-img {
+                    height: 180px;
+                    width: 100%;
+                    background-color: var(--blue);
+                    background-size: cover;
+                    background-position: center;
+                }
 
-        .item-price {
-            font-size: 22px;
-            color: var(--teal);
-            font-weight: 800;
-        }
+                .item-details {
+                    padding: 20px;
+                }
 
-        .book-btn {
-            display: block;
-            text-align: center;
-            margin-top: 15px;
-            background-color: var(--white);
-            color: var(--teal);
-            border: 2px solid var(--teal);
-        }
+                .item-title {
+                    font-size: 20px;
+                    color: var(--dark-text);
+                    margin-bottom: 5px;
+                    font-weight: 800;
+                }
 
-        .book-btn:hover {
-            background-color: var(--teal);
-            color: var(--white);
-        }
-    </style>
-</head>
-<body>
+                .item-subtitle {
+                    color: #888;
+                    font-size: 14px;
+                    margin-bottom: 15px;
+                }
 
-    <%- include('partials/navbar') %>
+                .item-price {
+                    font-size: 22px;
+                    color: var(--teal);
+                    font-weight: 800;
+                }
 
-    <!-- Hero Carousel with Search Widget -->
-    <section class="hero">
-        <div class="carousel-bg active" id="carousel-layer-1"></div>
-        <div class="carousel-bg" id="carousel-layer-2"></div>
-        <div class="overlay"></div>
+                .book-btn {
+                    display: block;
+                    text-align: center;
+                    margin-top: 15px;
+                    background-color: var(--white);
+                    color: var(--teal);
+                    border: 2px solid var(--teal);
+                }
+
+                .book-btn:hover {
+                    background-color: var(--teal);
+                    color: var(--white);
+                }
+            </style>
+        </head>
+        <body>
+
+            <%- include('partials/navbar') %>
+
+            <!-- Hero Carousel with Search Widget -->
+            <section class="hero">
+                <div class="carousel-bg active" id="carousel-layer-1"></div>
+                <div class="carousel-bg" id="carousel-layer-2"></div>
+                <div class="overlay"></div>
         
-        <div class="hero-content">
-            <h1>Discover the Extraordinary</h1>
-            <p>Secure payments | World-class destinations | 24/7 Support</p>
-        </div>
-
-        <!-- The Interactive Search Widget -->
-        <div class="search-widget">
-            <div class="search-tabs">
-                <button class="tab active" onclick="switchTab('flights')">✈️ Flights</button>
-                <button class="tab" onclick="switchTab('hotels')">🏨 Hotels & Homes</button>
-            </div>
-            
-            <form class="search-form" action="/search" method="GET">
-                <div class="input-group" style="position:relative;">
-                    <label>Where to?</label>
-                    <input type="text" name="destination" id="destinationInput" placeholder="City or Airport..." autocomplete="off" required>
-
-                    <div id="homeSuggestions" class="suggestions-box" aria-hidden="true"></div>
+                <div class="hero-content">
+                    <h1>Discover the Extraordinary</h1>
+                    <p>Secure payments | World-class destinations | 24/7 Support</p>
                 </div>
-                <div class="input-group">
-                    <label>Departure Date</label>
-                    <input type="date" name="date" required>
-                </div>
-                <div class="input-group">
-                    <label>Travelers</label>
-                    <div style="display:flex; gap:10px; align-items:center;">
-                        <div style="flex:1;">
-                            <select name="adults" style="width:100%;">
-                                <option value="1">1 Adult</option>
-                                <option value="2">2 Adults</option>
-                            </select>
+
+                <!-- The Interactive Search Widget -->
+                <div class="search-widget">
+                    <div class="search-tabs">
+                        <button class="tab active" onclick="switchTab('flights')">✈️ Flights</button>
+                        <button class="tab" onclick="switchTab('hotels')">🏨 Hotels & Homes</button>
+                    </div>
+
+                    <form class="search-form" action="/search" method="GET">
+                        <div style="display:flex; gap:16px; width:100%; align-items:flex-start; flex-wrap:wrap;">
+                            <div class="input-group" style="flex:1; position:relative; min-width:180px; max-width:480px;">
+                                <label>WHERE TO?</label>
+                                <input type="text" name="destination" id="destinationInput" placeholder="City or Airport..." autocomplete="off" required style="padding:14px 18px; font-size:16px; height:56px; box-sizing:border-box; max-width:100%;">
+                                <div id="homeSuggestions" class="suggestions-box" aria-hidden="true"></div>
+                            </div>
+
+                            <div class="input-group" style="width:170px; min-width:140px;">
+                                <label>DEPARTURE</label>
+                                <input type="date" name="date" required style="padding:14px 18px; font-size:16px; height:56px; box-sizing:border-box; max-width:100%;">
+                            </div>
+
+                            <div class="input-group" style="width:170px; min-width:140px;">
+                                <label>TRAVELLERS</label>
+                                <div style="display:flex; gap:10px; align-items:center;">
+
+                                    <div style="display:flex; align-items:center; gap:8px; border:1px solid var(--blue); padding:8px 12px; border-radius:8px; height:56px; box-sizing:border-box;">
+                                        <span style="font-size:18px;">👤</span>
+                                        <select id="adultsSelect" name="adults" style="height:100%; border:none; background:transparent; font-weight:700; padding:0 6px; max-width:100%;">
+                                            <option value="1">1 Adult</option>
+                                            <option value="2">2 Adults</option>
+                                            <option value="3">3 Adults</option>
+                                            <option value="4">4 Adults</option>
+                                            <option value="5">5 Adults</option>
+                                            <option value="6">6 Adults</option>
+                                            <option value="7">7 Adults</option>
+                                            <option value="8">8 Adults</option>
+                                            <option value="9">9 Adults</option>
+                                        </select>
+                                    </div>
+
+                                    <div style="display:flex; align-items:center; gap:8px; border:1px solid var(--blue); padding:8px 12px; border-radius:8px; height:56px; box-sizing:border-box;">
+                                        <span style="font-size:18px;">👶</span>
+                                        <select id="childrenSelect" name="children" style="height:100%; border:none; background:transparent; font-weight:700; padding:0 6px; max-width:100%;">
+                                            <option value="0">0 Children</option>
+                                            <option value="1">1 Child</option>
+                                            <option value="2">2 Children</option>
+                                            <option value="3">3 Children</option>
+                                            <option value="4">4 Children</option>
+                                            <option value="5">5 Children</option>
+                                            <option value="6">6 Children</option>
+                                            <option value="7">7 Children</option>
+                                            <option value="8">8 Children</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div style="width:140px;">
-                            <select name="children" style="width:100%;">
-                                <option value="0">0 Children</option>
-                                <option value="1">1 Child</option>
-                                <option value="2">2 Children</option>
-                            </select>
+
+                        <div style="margin-top:18px; display:flex; gap:12px; align-items:flex-end;">
+                            <div style="flex:1;">
+                                <label>CLASS</label>
+                                <select name="travel_class" style="width:100%; padding:16px; font-size:16px; margin-top:8px; border:1px solid var(--blue); border-radius:8px;">
+                                    <option value="economy">Economy</option>
+                                    <option value="premium">Premium Economy</option>
+                                    <option value="business">Business</option>
+                                    <option value="first">First</option>
+                                </select>
+                            </div>
+                            <div style="width:220px;">
+                                <button type="submit" class="btn btn-register search-btn" style="width:100%; padding:16px; font-size:18px; border-radius:8px;">🔍 Search Flights</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- AI　ＴＥＭＰＬＡＴＥ　ｓｔａｒｔ！-->
+     
+            <!-- SECTION 1: Featured Flights -->
+            <section class="data-section">
+                <div class="grid-container">
+                    <div class="section-header" style="grid-column: 1 / -1;">
+                        <h2>Popular Flights</h2>
+                        <a href="/flights" class="view-all">View All Flights &rarr;</a>
+                    </div>
+
+                    <!-- Hardcoded Example 1 -->
+                    <div class="item-card">
+                        <div class="item-img" style="background-image: url('https://images.unsplash.com/photo-1542051812-ba32e18ce6a3?auto=format&fit=crop&w=600&q=80');"></div>
+                        <div class="item-details">
+                            <div class="item-title">Singapore to Tokyo</div>
+                            <div class="item-subtitle">Direct Flight • 7h 10m</div>
+                            <div class="item-price">$450.00</div>
+                            <a href="/flights" class="btn book-btn">Book Flight</a>
+                        </div>
+                    </div>
+
+                    <!-- Hardcoded Example 2 -->
+                    <div class="item-card">
+                        <div class="item-img" style="background-image: url('https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?auto=format&fit=crop&w=600&q=80');"></div>
+                        <div class="item-details">
+                            <div class="item-title">Singapore to Zurich</div>
+                            <div class="item-subtitle">1 Stop • 14h 20m</div>
+                            <div class="item-price">$890.00</div>
+                            <a href="/flights" class="btn book-btn">Book Flight</a>
+                        </div>
+                    </div>
+
+                    <!-- Hardcoded Example 3 -->
+                    <div class="item-card">
+                        <div class="item-img" style="background-image: url('https://images.unsplash.com/photo-1603565816030-6b389eeb23cb?auto=format&fit=crop&w=600&q=80');"></div>
+                        <div class="item-details">
+                            <div class="item-title">Singapore to Cairo</div>
+                            <div class="item-subtitle">1 Stop • 11h 45m</div>
+                            <div class="item-price">$620.00</div>
+                            <a href="/flights" class="btn book-btn">Book Flight</a>
                         </div>
                     </div>
                 </div>
-                <button type="submit" class="btn btn-register search-btn">Search</button>
-            </form>
-        </div>
-    </section>
-
-    <!-- AI　ＴＥＭＰＬＡＴＥ　ｓｔａｒｔ！-->
-     
-    <!-- SECTION 1: Featured Flights -->
-    <section class="data-section">
-        <div class="grid-container">
-            <div class="section-header" style="grid-column: 1 / -1;">
-                <h2>Popular Flights</h2>
-                <a href="/flights" class="view-all">View All Flights &rarr;</a>
-            </div>
-            
-            <!-- Hardcoded Example 1 -->
-            <div class="item-card">
-                <div class="item-img" style="background-image: url('https://images.unsplash.com/photo-1542051812-ba32e18ce6a3?auto=format&fit=crop&w=600&q=80');"></div>
-                <div class="item-details">
-                    <div class="item-title">Singapore to Tokyo</div>
-                    <div class="item-subtitle">Direct Flight • 7h 10m</div>
-                    <div class="item-price">$450.00</div>
-                    <a href="/flights" class="btn book-btn">Book Flight</a>
-                </div>
-            </div>
-
-            <!-- Hardcoded Example 2 -->
-            <div class="item-card">
-                <div class="item-img" style="background-image: url('https://images.unsplash.com/photo-1530122037265-a5f1f91d3b99?auto=format&fit=crop&w=600&q=80');"></div>
-                <div class="item-details">
-                    <div class="item-title">Singapore to Zurich</div>
-                    <div class="item-subtitle">1 Stop • 14h 20m</div>
-                    <div class="item-price">$890.00</div>
-                    <a href="/flights" class="btn book-btn">Book Flight</a>
-                </div>
-            </div>
-
-            <!-- Hardcoded Example 3 -->
-            <div class="item-card">
-                <div class="item-img" style="background-image: url('https://images.unsplash.com/photo-1603565816030-6b389eeb23cb?auto=format&fit=crop&w=600&q=80');"></div>
-                <div class="item-details">
-                    <div class="item-title">Singapore to Cairo</div>
-                    <div class="item-subtitle">1 Stop • 11h 45m</div>
-                    <div class="item-price">$620.00</div>
-                    <a href="/flights" class="btn book-btn">Book Flight</a>
-                </div>
-            </div>
-        </div>
-    </section>
+            </section>
 
     <!-- SECTION 2: Trending Hotels -->
     <section class="data-section bg-light">
@@ -527,8 +591,56 @@
             });
 
             document.addEventListener('click', (ev)=>{
-                if(!box.contains(ev.target) && ev.target !== input){ box.style.display='none'; box.setAttribute('aria-hidden','true'); }
+                if(box && !box.contains(ev.target) && ev.target !== input){ box.style.display='none'; box.setAttribute('aria-hidden','true'); }
             });
+        })();
+
+        // Small enhancement: when user focuses the date input, open native picker (placeholder handled by browser)
+        document.addEventListener('DOMContentLoaded', ()=>{
+            const dateInput = document.querySelector('input[type="date"]');
+            if(dateInput) dateInput.style.cursor = 'pointer';
+        });
+
+        // Enforce max 9 passengers (adults + children)
+        (function(){
+            const adults = document.getElementById('adultsSelect');
+            const children = document.getElementById('childrenSelect');
+            const totalSpan = document.getElementById('passengerTotal');
+
+            function populateChildren(max){
+                children.innerHTML = '';
+                for(let i=0;i<=max;i++){
+                    const opt = document.createElement('option');
+                    opt.value = String(i);
+                    opt.textContent = i + (i===1? ' Child':' Children');
+                    children.appendChild(opt);
+                }
+            }
+
+            function updateTotal(){
+                const a = Number(adults.value || 0);
+                const c = Number(children.value || 0);
+                totalSpan.textContent = (a + c);
+            }
+
+            function onAdultsChange(){
+                const a = Number(adults.value || 0);
+                const maxChildren = Math.max(0, 9 - a);
+                const prevChildren = Number(children.value || 0);
+                populateChildren(maxChildren);
+                // restore previous children if within new range
+                if(prevChildren <= maxChildren) children.value = String(prevChildren);
+                updateTotal();
+            }
+
+            if(adults && children){
+                // initialize
+                populateChildren(8); // default adults 1 -> max children 8
+                adults.addEventListener('change', onAdultsChange);
+                children.addEventListener('change', updateTotal);
+                // set initial total
+                updateTotal();
+            }
         })();
     </script>
 </body>

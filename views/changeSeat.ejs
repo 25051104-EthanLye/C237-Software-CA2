@@ -24,7 +24,8 @@
         </div>
         <div class="mb-4">
             <strong>Date:</strong> <%= new Date(booking.departure_date).toLocaleDateString() %>
-            @ <%= booking.departure_time %>
+            &nbsp;|&nbsp; <strong>Dep:</strong> <%= booking.departure_time %>
+            &nbsp;→&nbsp; <strong>Arr:</strong> <%= booking.arrival_time || 'TBD' %>
         </div>
 
         <form action="/bookings/<%= booking.id %>/seat" method="POST">

@@ -47,7 +47,8 @@
                         <td><%= b.destination %></td>
                         <td>
                             <%= new Date(b.departure_date).toLocaleDateString() %>
-                            @ <%= b.departure_time %>
+                            &nbsp;|&nbsp; <strong>Dep:</strong> <%= b.departure_time %>
+                            &nbsp;→&nbsp; <strong>Arr:</strong> <%= b.arrival_time || 'TBD' %>
                         </td>
                         <td><span class="badge bg-info text-dark"><%= b.seat_preference %></span></td>
                         <td>$<%= Number(b.price).toFixed(2) %></td>
