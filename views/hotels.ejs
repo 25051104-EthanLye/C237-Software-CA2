@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotels | VividVoyage</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* palette shared with the rest of VividVoyage (also lets the navbar render correctly here) */
+        :root {
+            --white: #FFFFFF; --peach: #E2C1AA; --teal: #99BDBC;
+            --blue: #A2BFCE; --dark-text: #2C3E50; --light-bg: #F8F9FA;
+            --teal-deep: #5f8f8e;
+        }
+        * { font-family: 'Nunito', sans-serif; }
+        body { background: #F8F5F1; color: var(--dark-text); }
+
+        /* hero search strip */
+        .hotel-hero {
+            margin-top: 96px; padding: 46px 20px 40px;
+            background: linear-gradient(135deg, rgba(153,189,188,.22), rgba(226,193,170,.22));
+        }
+        .hotel-hero h1 { font-weight: 800; letter-spacing: -.5px; }
+        .hotel-hero p { color: #6b7b84; font-weight: 600; }
+        .search-box {
+            max-width: 560px; margin: 22px auto 0; display: flex; gap: 10px;
+            background: var(--white); padding: 8px; border-radius: 999px;
+            box-shadow: 0 10px 30px rgba(44,62,80,.08);
+        }
+        .search-box input {
+            flex: 1; border: none; outline: none; padding: 12px 18px;
+            font-size: 1rem; border-radius: 999px; background: transparent;
+        }
+        .btn-teal {
+            background: var(--teal); color: #143b3a; font-weight: 800; border: none;
+            border-radius: 999px; padding: 12px 26px; transition: all .2s;
+        }
+        .btn-teal:hover { background: var(--teal-deep); color: #fff; }
+
+        /* hotel cards */
+        .hotel-grid { max-width: 1080px; margin: 0 auto; padding: 40px 20px 70px; }
+        .hotel-card {
+            background: var(--white); border: 1px solid #eee7df; border-radius: 18px;
+            padding: 22px; height: 100%; box-shadow: 0 6px 20px rgba(44,62,80,.06);
+            transition: transform .16s ease, box-shadow .16s ease;
+        }
+        .hotel-card:hover { transform: translateY(-4px); box-shadow: 0 16px 34px rgba(44,62,80,.12); }
+        .hotel-card h3 { font-weight: 800; margin-bottom: 4px; }
+        .hotel-loc { color: var(--teal-deep); font-weight: 700; font-size: .92rem; }
+        .price-tag {
+            display: inline-block; margin: 14px 0 18px; padding: 6px 14px;
+            background: rgba(226,193,170,.35); color: #7a4a30; font-weight: 800;
+            border-radius: 999px; font-size: .95rem;
+        }
+        .price-tag span { font-weight: 600; color: #9a7358; font-size: .8rem; }
+        .empty {
+            max-width: 520px; margin: 30px auto; text-align: center; color: #7d8a92;
+            background: var(--white); border-radius: 18px; padding: 40px; border: 1px dashed var(--blue);
+        }
+    </style>
+</head>
+<body>
+
+<%- include('partials/navbar') %>
+
+<section class="hotel-hero text-center">
+    <h1>Find your stay 🏝️</h1>
+    <p>Handpicked hotels for your next getaway.</p>
+
+    <!-- GET so the search term shows in the URL and is bookmarkable; server filters via ?search= -->
+    <form class="search-box" action="/hotels" method="GET">
+        <input type="text" name="search" value="<%= search %>" placeholder="Search by hotel or destination...">
+        <button type="submit" class="btn-teal">Search</button>
+    </form>
+</section>
+
+<div class="hotel-grid">
+    <% if (hotels.length === 0) { %>
+        <div class="empty">
+            <h4 style="font-weight:800;">No hotels found</h4>
+            <p class="mb-3">Try a different search, or clear it to see everything.</p>
+            <a href="/hotels" class="btn-teal">View all hotels</a>
+        </div>
+    <% } else { %>
+        <div class="row g-4">
+            <% hotels.forEach(hotel => { %>
+                <div class="col-md-6 col-lg-4">
+                    <div class="hotel-card">
+                        <h3><%= hotel.name %></h3>
+                        <p class="hotel-loc">📍 <%= hotel.location %></p>
+                        <div class="price-tag">$<%= Number(hotel.price_per_night).toFixed(2) %> <span>/ night</span></div>
+                        <a href="/hotels/book/<%= hotel.id %>" class="btn btn-teal w-100">Reserve room</a>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+    <% } %>
+</div>
+
+</body>
+</html>
