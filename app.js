@@ -613,7 +613,8 @@ app.post('/trip/delete/:id', isAuthenticated, (req,res)=>{
 
 });
 
-// --- REVIEWS ROUTES ---
+// ------------------------------------------------------- Rui Qi's Path end
+// ------------------------------------------------------- Alyssa's Path start
 app.get('/reviews', (req, res) => {
     const sql = 'SELECT * FROM reviews ORDER BY date DESC';
     db.query(sql, (err, results) => {
@@ -659,8 +660,7 @@ app.post('/reviews/edit/:id', isAuthenticated, (req, res) => {
         res.redirect('/reviews');
     });
 });
-
-// ------------------------------------------------------- Rui Qi's Path end
+// ------------------------------------------------------- Alyssa's Path end
 
 // ------------------------------------------------------- Arvin's Path start
 // Admin Control: Inventory Management & Review Moderation
