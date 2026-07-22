@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>
+        <%= review ? 'Edit Review' : 'Write a Review' %>
+    </title>
+
+
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap"
+        rel="stylesheet">
+
+
+    <style>
+
+        :root {
+
+            --white: #FFFFFF;
+
+            --sand: #E2C1AA;
+
+            --teal: #99BDBC;
+
+            --blue-grey: #A2BFCE;
+
+            --dark: #2F3A3F;
+
+            --muted: #6F8384;
+
+            --light: #F7FAFA;
+
+        }
+
+
+        * {
+
+            box-sizing: border-box;
+
+        }
+
+
+        body {
+
+            margin: 0;
+
+            font-family: 'Nunito', sans-serif;
+
+            background:
+
+                linear-gradient(
+                    180deg,
+                    white,
+                    #F4F9F9
+                );
+
+            color: var(--dark);
+
+        }
+
+
+        header {
+
+            padding: 20px 7%;
+
+            background: white;
+
+            border-bottom: 1px solid #E8EEEE;
+
+        }
+
+
+        .logo {
+
+            color: var(--teal);
+
+            font-size: 1.7rem;
+
+            font-weight: 900;
+
+        }
+
+
+        .container {
+
+            max-width: 650px;
+
+            margin: 70px auto;
+
+            padding: 0 25px;
+
+        }
+
+
+        .form-card {
+
+            background: white;
+
+            padding: 40px;
+
+            border-radius: 25px;
+
+            box-shadow:
+                0 15px 40px
+                rgba(43, 58, 74, 0.1);
+
+        }
+
+
+        h1 {
+
+            color: var(--dark);
+
+            margin-top: 0;
+
+        }
+
+
+        .subtitle {
+
+            color: var(--muted);
+
+            margin-bottom: 30px;
+
+        }
+
+
+        label {
+
+            display: block;
+
+            margin-bottom: 7px;
+
+            font-weight: 800;
+
+            color: var(--teal);
+
+        }
+
+
+        input,
+        textarea,
+        select {
+
+            width: 100%;
+
+            padding: 13px 15px;
+
+            border-radius: 12px;
+
+            border: 1px solid #DDE7E7;
+
+            font-family: 'Nunito', sans-serif;
+
+            font-size: 1rem;
+
+            margin-bottom: 20px;
+
+            outline: none;
+
+        }
+
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+
+            border-color: var(--teal);
+
+            box-shadow:
+                0 0 0 3px
+                rgba(153, 189, 188, 0.2);
+
+        }
+
+
+        textarea {
+
+            min-height: 130px;
+
+            resize: vertical;
+
+        }
+
+
+        .buttons {
+
+            display: flex;
+
+            gap: 12px;
+
+        }
+
+
+        .submit-button {
+
+            background: var(--teal);
+
+            color: white;
+
+            border: none;
+
+            padding: 13px 25px;
+
+            border-radius: 25px;
+
+            font-family: 'Nunito', sans-serif;
+
+            font-weight: 800;
+
+            cursor: pointer;
+
+        }
+
+
+        .submit-button:hover {
+
+            background: #7FA9A8;
+
+        }
+
+
+        .cancel-button {
+
+            text-decoration: none;
+
+            background: var(--sand);
+
+            color: white;
+
+            padding: 13px 25px;
+
+            border-radius: 25px;
+
+            font-weight: 800;
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<header>
+
+    <div class="logo">
+        VividVoyage
+    </div>
+
+</header>
+
+
+<div class="container">
+
+
+    <div class="form-card">
+
+
+        <h1>
+
+            <%= review
+                ? 'Edit Your Review'
+                : 'Share Your Experience'
+            %>
+
+        </h1>
+
+
+        <p class="subtitle">
+
+            Tell fellow travellers about your journey.
+
+        </p>
+
+
+        <form
+
+            action="<%= review
+                ? '/reviews/edit/' + review.id
+                : '/reviews/add'
+            %>"
+
+            method="POST"
+        >
+
+
+            <!-- DESTINATION -->
+
+            <label>
+                Destination
+            </label>
+
+
+            <input
+
+                type="text"
+
+                name="destination"
+
+                placeholder="e.g. Kyoto, Japan"
+
+                value="<%= review
+                    ? review.destination
+                    : ''
+                %>"
+
+                required
+
+            >
+
+
+            <!-- RATING -->
+
+            <label>
+                Rating
+            </label>
+
+
+            <select
+
+                name="rating"
+
+                required
+
+            >
+
+                <option value="">
+                    Select a rating
+                </option>
+
+
+                <% for (
+                    let i = 5;
+                    i >= 1;
+                    i--
+                ) { %>
+
+
+                    <option
+
+                        value="<%= i %>"
+
+                        <%= review &&
+                            review.rating == i
+                            ? 'selected'
+                            : ''
+                        %>
+
+                    >
+
+                        <%= i %>
+                        ★
+
+                    </option>
+
+
+                <% } %>
+
+
+            </select>
+
+
+            <!-- REVIEW -->
+
+            <label>
+                Your Review
+            </label>
+
+
+            <textarea
+
+                name="text"
+
+                placeholder="Tell us about your trip..."
+
+                required
+
+            ><%= review ? review.text : '' %></textarea>
+
+
+            <!-- BUTTONS -->
+
+            <div class="buttons">
+
+
+                <a
+                    href="/reviews"
+                    class="cancel-button"
+                >
+                    Cancel
+                </a>
+
+
+                <button
+
+                    type="submit"
+
+                    class="submit-button"
+
+                >
+
+                    <%= review
+                        ? 'Save Changes'
+                        : 'Post Review'
+                    %>
+
+                </button>
+
+
+            </div>
+
+
+        </form>
+
+
+    </div>
+
+
+</div>
+
+
+</body>
+
+</html>
+```

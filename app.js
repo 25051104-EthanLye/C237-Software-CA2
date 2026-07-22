@@ -76,6 +76,21 @@ const isAuthenticated = (req, res, next) => {
     next();
 };
 
+// --- ADMIN-ONLY MIDDLEWARE --- Arvin's part
+// Blocks anyone who isn't logged in AND anyone whose role isn't 'admin'
+// from reaching the inventory/review-moderation routes at the bottom of this file.
+const isAdmin = (req, res, next) => {
+    if (!req.session.user) {
+        req.flash('error', 'Please log in to access this page.');
+        return res.redirect('/');
+    }
+    if (req.session.user.role !== 'admin') {
+        req.flash('error', 'You do not have permission to access that page.');
+        return res.redirect('/');
+    }
+    next();
+};
+
 // --- PATHS --- //
 
 // ------------------------------------------------------- Ethan's Path start
@@ -125,11 +140,12 @@ app.post('/register', validateRegistration, (req, res) => {
 
 // 4. LOGIN POST ROUTE
 app.post('/login', (req, res) => {
-    const { username, password } = req.body;
+    const { username, password, redirectUrl } = req.body;
+    const targetUrl = redirectUrl || '/'; // Default to home if something goes wrong
     
     if (!username || !password) {
         req.flash('error', 'Please fill in both username and password.');
-        return req.session.save(() => res.redirect('/')); 
+        return req.session.save(() => res.redirect(targetUrl)); 
     }
     
     const sql = 'SELECT * FROM users WHERE username = ? AND password = SHA1(?)';
@@ -138,10 +154,10 @@ app.post('/login', (req, res) => {
         
         if (results.length > 0) {
             req.session.user = results[0]; 
-            req.session.save(() => res.redirect('/')); 
+            req.session.save(() => res.redirect(targetUrl)); 
         } else {
             req.flash('error', 'Incorrect username or password. Please try again.');
-            req.session.save(() => res.redirect('/')); 
+            req.session.save(() => res.redirect(targetUrl)); 
         }
     });
 });
@@ -235,6 +251,45 @@ app.post('/profile/delete-picture', isAuthenticated, (req, res) => {
         req.session.user.profile_picture = null; 
         req.flash('success', 'Profile picture removed.');
         res.redirect('/profile');
+    });
+});
+
+// --- NEW: GLOBAL SEARCH ROUTE ---
+app.get('/search', (req, res) => {
+    const type = req.query.type || 'flight';
+    const destination = req.query.to || ''; // What the user searched for
+    
+    // Query 1: Find matching flights
+    let flightSql = 'SELECT * FROM flights WHERE 1=1';
+    let flightParams = [];
+    if (destination) {
+        flightSql += ' AND destination LIKE ?';
+        flightParams.push(`%${destination}%`);
+    }
+
+    // Query 2: Find matching hotels
+    let hotelSql = 'SELECT * FROM hotels WHERE 1=1';
+    let hotelParams = [];
+    if (destination) {
+        hotelSql += ' AND location LIKE ?';
+        hotelParams.push(`%${destination}%`);
+    }
+
+    // Execute both queries simultaneously
+    db.query(flightSql, flightParams, (err, flights) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+        
+        db.query(hotelSql, hotelParams, (err, hotels) => {
+            if (err) { console.log(err); return res.send("Database Error"); }
+            
+            // Send all the data to our new Search Results page!
+            res.render('searchResults', {
+                searchType: type,
+                searchDestination: destination || 'All Destinations',
+                flights: flights,
+                hotels: hotels
+            });
+        });
     });
 });
 // ------------------------------------------------------- Ethan's Path end
@@ -641,54 +696,585 @@ app.post('/trip/delete/:id', isAuthenticated, (req,res)=>{
 
 });
 
-// --- REVIEWS ROUTES ---
+// ------------------------------------------------------- Rui Qi's Path end
+// ------------------------------------------------------- Alyssa's Path start
+
+// =========================================================
+// REVIEWS ROUTES
+// =========================================================
+
+// GET /reviews
+// View all reviews
+
 app.get('/reviews', (req, res) => {
-    const sql = 'SELECT * FROM reviews ORDER BY date DESC';
+
+    const sql = `
+        SELECT 
+            reviews.id,
+            reviews.user_id,
+            users.username AS name,
+            reviews.target_destination AS destination,
+            reviews.rating,
+            reviews.comment AS text
+        FROM reviews
+        LEFT JOIN users ON reviews.user_id = users.id
+        ORDER BY reviews.id DESC
+    `;
+
     db.query(sql, (err, results) => {
+
         if (err) {
-            console.log(err);
-            return res.send("Database Error");
+            console.log('Error loading reviews:', err);
+            return res.send('Database Error');
         }
-        res.render('reviews', { reviews: results });
+
+        res.render('reviews', {
+            reviews: results,
+            user: req.session.user || null
+        });
+
     });
+
 });
+
+// =========================================================
+// GET /reviews/add
+// Show Add Review page
+// =========================================================
+
+app.get('/reviews/add', isAuthenticated, (req, res) => {
+
+    res.render('addReview', {
+        review: null,
+        user: req.session.user
+    });
+
+});
+
+
+// =========================================================
+// POST /reviews/add
+// Add a new review
+// =========================================================
 
 app.post('/reviews/add', isAuthenticated, (req, res) => {
-    const { name, destination, rating, text } = req.body;
-    const sql = 'INSERT INTO reviews (user_id, name, destination, rating, text) VALUES (?, ?, ?, ?, ?)';
-    db.query(sql, [req.session.user.id, name, destination, rating, text], (err) => {
+
+    const { destination, rating, text } = req.body;
+
+    // Check that all fields have been filled
+    if (!destination || !rating || !text) {
+        return res.send('Please fill in all fields.');
+    }
+
+    const sql = `
+        INSERT INTO reviews
+        (user_id, target_destination, rating, comment)
+        VALUES (?, ?, ?, ?)
+    `;
+
+    const values = [
+        req.session.user.id,
+        destination,
+        rating,
+        text
+    ];
+
+    db.query(sql, values, (err, result) => {
+
         if (err) {
-            console.log(err);
-            return res.send("Database Error");
+
+            console.log('Error adding review:', err);
+
+            return res.send(
+                'Database Error: ' + err.message
+            );
+
         }
+
+        console.log('Review added successfully!');
+
         res.redirect('/reviews');
+
     });
+
 });
 
-app.post('/reviews/delete/:id', isAuthenticated, (req, res) => {
-    const sql = 'DELETE FROM reviews WHERE id = ? AND user_id = ?';
-    db.query(sql, [req.params.id, req.session.user.id], (err) => {
-        if (err) {
-            console.log(err);
-            return res.send("Database Error");
+// =========================================================
+// GET /reviews/edit/:id
+// Show Edit Review page
+// =========================================================
+
+// =========================================================
+// GET /reviews/edit/:id
+// Display the Edit Review page
+// =========================================================
+
+app.get('/reviews/edit/:id', isAuthenticated, (req, res) => {
+
+    const reviewId = req.params.id;
+
+    const sql = `
+        SELECT
+            id,
+            user_id,
+            target_destination AS destination,
+            rating,
+            comment AS text
+        FROM reviews
+        WHERE id = ? AND user_id = ?
+    `;
+
+    db.query(
+        sql,
+        [
+            reviewId,
+            req.session.user.id
+        ],
+        (err, results) => {
+
+            if (err) {
+
+                console.log(
+                    'Error loading review for editing:',
+                    err
+                );
+
+                return res.send(
+                    'Database Error: ' + err.message
+                );
+
+            }
+
+
+            // Check if review exists
+            // and belongs to logged-in user
+
+            if (results.length === 0) {
+
+                return res.send(
+                    'Review not found or you do not have permission to edit this review.'
+                );
+
+            }
+
+
+            // Display editReviews.ejs
+
+            res.render('editReviews', {
+
+                review: results[0],
+
+                user: req.session.user
+
+            });
+
         }
-        res.redirect('/reviews');
-    });
+
+    );
+
 });
+
+// =========================================================
+// POST /reviews/edit/:id
+// Update an existing review
+// =========================================================
+
+// =========================================================
+// POST /reviews/edit/:id
+// Update the review in the database
+// =========================================================
 
 app.post('/reviews/edit/:id', isAuthenticated, (req, res) => {
-    const { name, destination, rating, text } = req.body;
-    const sql = 'UPDATE reviews SET name = ?, destination = ?, rating = ?, text = ? WHERE id = ? AND user_id = ?';
-    db.query(sql, [name, destination, rating, text, req.params.id, req.session.user.id], (err) => {
-        if (err) {
-            console.log(err);
-            return res.send("Database Error");
+
+    const reviewId = req.params.id;
+
+    const {
+        destination,
+        rating,
+        text
+    } = req.body;
+
+
+    // =====================================================
+    // VALIDATION
+    // =====================================================
+
+    if (!destination || !rating || !text) {
+
+        return res.send(
+            'Please fill in all fields.'
+        );
+
+    }
+
+
+    // =====================================================
+    // UPDATE REVIEW
+    // Only update the review if it belongs
+    // to the logged-in user
+    // =====================================================
+
+    const sql = `
+        UPDATE reviews
+
+        SET
+            target_destination = ?,
+            rating = ?,
+            comment = ?
+
+        WHERE
+            id = ?
+            AND user_id = ?
+    `;
+
+
+    const values = [
+
+        destination,
+
+        rating,
+
+        text,
+
+        reviewId,
+
+        req.session.user.id
+
+    ];
+
+
+    db.query(
+        sql,
+        values,
+        (err, result) => {
+
+            if (err) {
+
+                console.log(
+                    'Error updating review:',
+                    err
+                );
+
+                return res.send(
+                    'Database Error: ' + err.message
+                );
+
+            }
+
+
+            // =================================================
+            // CHECK IF REVIEW WAS UPDATED
+            // =================================================
+
+            if (result.affectedRows === 0) {
+
+                return res.send(
+
+                    'Review not found or you do not have permission to edit this review.'
+
+                );
+
+            }
+
+
+            console.log(
+                'Review updated successfully!'
+            );
+
+
+            // =================================================
+            // REDIRECT TO REVIEWS PAGE
+            // =================================================
+
+            res.redirect('/reviews');
+
         }
-        res.redirect('/reviews');
+
+    );
+
+});
+
+
+// =========================================================
+// POST /reviews/delete/:id
+// Delete a review
+// =========================================================
+
+app.post('/reviews/delete/:id', isAuthenticated, (req, res) => {
+
+    const reviewId = req.params.id;
+
+    const sql = `
+        DELETE FROM reviews
+        WHERE id = ? AND user_id = ?
+    `;
+
+    db.query(
+        sql,
+        [reviewId, req.session.user.id],
+        (err, result) => {
+
+            if (err) {
+                console.log('Error deleting review:', err);
+                return res.send('Database Error');
+            }
+
+            res.redirect('/reviews');
+
+        }
+    );
+});
+
+
+
+// ------------------------------------------------------- Alyssa's Path end
+
+// ------------------------------------------------------- Arvin's Path start
+// Admin Control: Inventory Management & Review Moderation
+// Covers: Add Inventory, View All, Resolve Issues (-> review moderation), Delete Items
+// All routes below require an admin-role account (see isAdmin middleware)
+// ==================================================================
+
+// ADMIN DASHBOARD (hub linking to hotels / flights / reviews)
+app.get('/admin', isAdmin, (req, res) => {
+    res.render('admin/ADMINdashboard', { user: req.session.user });
+});
+
+// ----- HOTEL INVENTORY -----
+
+// VIEW ALL: list every hotel currently in the system
+app.get('/admin/hotels', isAdmin, (req, res) => {
+    const sql = 'SELECT * FROM hotels ORDER BY id DESC';
+
+    db.query(sql, (err, results) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+
+        res.render('admin/ADMINhotels', {
+            user: req.session.user,
+            hotels: results,
+            messages: req.flash('success'),
+            errors: req.flash('error')
+        });
     });
 });
 
-// ------------------------------------------------------- Rui Qi's Path end
+// ADD INVENTORY: insert a new hotel
+app.post('/admin/hotels/add', isAdmin, (req, res) => {
+    const { name, location, price_per_night } = req.body;
+
+    if (!name || !location || !price_per_night) {
+        req.flash('error', 'All fields are required to add a hotel.');
+        return res.redirect('/admin/hotels');
+    }
+
+    const sql = 'INSERT INTO hotels (name, location, price_per_night) VALUES (?, ?, ?)';
+
+    db.query(sql, [name, location, price_per_night], (err) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+
+        req.flash('success', `Hotel "${name}" added to inventory.`);
+        res.redirect('/admin/hotels');
+    });
+});
+
+// DELETE ITEMS: remove a hotel
+app.post('/admin/hotels/delete/:id', isAdmin, (req, res) => {
+    const sql = 'DELETE FROM hotels WHERE id = ?';
+
+    db.query(sql, [req.params.id], (err) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+
+        req.flash('success', 'Hotel removed from inventory.');
+        res.redirect('/admin/hotels');
+    });
+});
+
+app.get('/admin/flights/edit/:id', isAdmin, (req, res) => {
+    const sql = 'SELECT * FROM flights WHERE id = ?';
+
+    db.query(sql, [req.params.id], (err, results) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+        if (results.length === 0) { return res.send("Flight not found"); }
+
+        res.render('admin/ADMINeditFlight', { flight: results[0] });
+    });
+});
+
+app.post('/admin/flights/edit/:id', isAdmin, (req, res) => {
+    const { flight_number, destination, departure_date, departure_time, duration, price } = req.body;
+
+    const sql = `
+        UPDATE flights
+        SET flight_number = ?, destination = ?, departure_date = ?, departure_time = ?, duration = ?, price = ?
+        WHERE id = ?
+    `;
+
+    db.query(sql, [flight_number, destination, departure_date, departure_time, duration, price, req.params.id], (err) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+
+        req.flash('success', `Flight ${flight_number} updated.`);
+        res.redirect('/admin/flights');
+    });
+});
+
+// Arvin - EDIT (Show Form): pre-fill the edit page with this hotel's current data
+app.get('/admin/hotels/edit/:id', isAdmin, (req, res) => {
+    const sql = 'SELECT * FROM hotels WHERE id = ?';
+
+    db.query(sql, [req.params.id], (err, results) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+        if (results.length === 0) { return res.send("Hotel not found"); }
+
+        res.render('admin/ADMINeditHotel', { hotel: results[0] });
+    });
+});
+
+// EDIT (Save): update the hotel with the submitted changes
+app.post('/admin/hotels/edit/:id', isAdmin, (req, res) => {
+    const { name, location, price_per_night } = req.body;
+
+    const sql = 'UPDATE hotels SET name = ?, location = ?, price_per_night = ? WHERE id = ?';
+
+    db.query(sql, [name, location, price_per_night, req.params.id], (err) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+
+        req.flash('success', `Hotel "${name}" updated.`);
+        res.redirect('/admin/hotels');
+    });
+});
+
+// ----- FLIGHT INVENTORY -----
+
+// VIEW ALL: list every flight route currently in the system
+app.get('/admin/flights', isAdmin, (req, res) => {
+    const sql = 'SELECT * FROM flights ORDER BY id DESC';
+
+    db.query(sql, (err, results) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+
+        res.render('admin/ADMINflights', {
+            user: req.session.user,
+            flights: results,
+            messages: req.flash('success'),
+            errors: req.flash('error')
+        });
+    });
+});
+
+// ADD INVENTORY: insert a new flight route
+app.post('/admin/flights/add', isAdmin, (req, res) => {
+    const { flight_number, destination, departure_date, departure_time, duration, price } = req.body;
+
+    if (!flight_number || !destination || !departure_date || !departure_time || !duration || !price) {
+        req.flash('error', 'All fields are required to add a flight.');
+        return res.redirect('/admin/flights');
+    }
+
+    const sql = `
+        INSERT INTO flights (flight_number, destination, departure_date, departure_time, duration, price)
+        VALUES (?, ?, ?, ?, ?, ?)
+    `;
+
+    db.query(sql, [flight_number, destination, departure_date, departure_time, duration, price], (err) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+
+        req.flash('success', `Flight ${flight_number} added to inventory.`);
+        res.redirect('/admin/flights');
+    });
+});
+
+// DELETE ITEMS: remove a flight route
+app.post('/admin/flights/delete/:id', isAdmin, (req, res) => {
+    const sql = 'DELETE FROM flights WHERE id = ?';
+
+    db.query(sql, [req.params.id], (err) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+
+        req.flash('success', 'Flight removed from inventory.');
+        res.redirect('/admin/flights');
+    });
+});
+
+// ----- REVIEW MODERATION ("Resolve Issues") -----
+// NOTE: the feedback table was cancelled by the team, so this covers
+// "Resolve Issues" by letting admin view all reviews and remove bad/inappropriate ones.
+
+// VIEW ALL: list every review submitted by users, newest first
+app.get('/admin/reviews', isAdmin, (req, res) => {
+    const sql = `
+        SELECT reviews.*, users.username
+        FROM reviews
+        LEFT JOIN users ON reviews.user_id = users.id
+        ORDER BY reviews.id DESC
+    `;
+
+    db.query(sql, (err, results) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+
+        res.render('admin/ADMINreviews', {
+            user: req.session.user,
+            reviews: results,
+            messages: req.flash('success'),
+            errors: req.flash('error')
+        });
+    });
+});
+
+// DELETE ITEMS: remove an inappropriate/bad review
+app.post('/admin/reviews/delete/:id', isAdmin, (req, res) => {
+    const sql = 'DELETE FROM reviews WHERE id = ?';
+
+    db.query(sql, [req.params.id], (err) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+
+        req.flash('success', 'Review removed.');
+        res.redirect('/admin/reviews');
+    });
+});
+
+// ----- USER MANAGEMENT (Ban/Unban) -----
+
+// VIEW ALL: list every registered user
+app.get('/admin/users', isAdmin, (req, res) => {
+    const sql = 'SELECT * FROM users ORDER BY id DESC';
+
+    db.query(sql, (err, results) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+
+        res.render('admin/ADMINban', {
+            user: req.session.user,
+            users: results,
+            messages: req.flash('success'),
+            errors: req.flash('error')
+        });
+    });
+});
+
+// BAN: block a user from logging in
+app.post('/admin/users/ban/:id', isAdmin, (req, res) => {
+    const sql = "UPDATE users SET account_status = 'banned' WHERE id = ?";
+
+    db.query(sql, [req.params.id], (err) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+
+        req.flash('success', 'User has been banned.');
+        res.redirect('/admin/users');
+    });
+});
+
+// UNBAN: restore a user's access
+app.post('/admin/users/unban/:id', isAdmin, (req, res) => {
+    const sql = "UPDATE users SET account_status = 'active' WHERE id = ?";
+
+    db.query(sql, [req.params.id], (err) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+
+        req.flash('success', 'User has been unbanned.');
+        res.redirect('/admin/users');
+    });
+});
+
+// ------------------------------------------------------- Arvin's Path end
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
