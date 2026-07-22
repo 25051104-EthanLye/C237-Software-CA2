@@ -615,51 +615,381 @@ app.post('/trip/delete/:id', isAuthenticated, (req,res)=>{
 
 // ------------------------------------------------------- Rui Qi's Path end
 // ------------------------------------------------------- Alyssa's Path start
+// app.get('/reviews', (req, res) => {
+//     const sql = 'SELECT * FROM reviews ORDER BY date DESC';
+//     db.query(sql, (err, results) => {
+//         if (err) {
+//             console.log(err);
+//             return res.send("Database Error");
+//         }
+//         res.render('reviews', { reviews: results });
+//     });
+// });
+
+// app.post('/reviews/add', isAuthenticated, (req, res) => {
+//     const { name, destination, rating, text } = req.body;
+//     const sql = 'INSERT INTO reviews (id, user_id, target_destination, rating, comment) VALUES (?, ?, ?, ?, ?)';
+//     db.query(sql, [req.session.user.id, name, destination, rating, text], (err) => {
+//         if (err) {
+//             console.log(err);
+//             return res.send("Database Error");
+//         }
+//         res.redirect('/reviews');
+//     });
+// });
+
+// app.post('/reviews/delete/:id', isAuthenticated, (req, res) => {
+//     const sql = 'DELETE FROM reviews WHERE id = ? AND user_id = ?';
+//     db.query(sql, [req.params.id, req.session.user.id], (err) => {
+//         if (err) {
+//             console.log(err);
+//             return res.send("Database Error");
+//         }
+//         res.redirect('/reviews');
+//     });
+// });
+
+// app.post('/reviews/edit/:id', isAuthenticated, (req, res) => {
+//     const { name, destination, rating, text } = req.body;
+//     const sql = 'UPDATE reviews SET name = ?, destination = ?, rating = ?, text = ? WHERE id = ? AND user_id = ?';
+//     db.query(sql, [name, destination, rating, text, req.params.id, req.session.user.id], (err) => {
+//         if (err) {
+//             console.log(err);
+//             return res.send("Database Error");
+//         }
+//         res.redirect('/reviews');
+//     });
+// });
+
+
+// =========================================================
+// REVIEWS ROUTES
+// =========================================================
+
+// GET /reviews
+// View all reviews
+
 app.get('/reviews', (req, res) => {
-    const sql = 'SELECT * FROM reviews ORDER BY date DESC';
+
+    const sql = `
+        SELECT 
+            reviews.id,
+            reviews.user_id,
+            users.username AS name,
+            reviews.target_destination AS destination,
+            reviews.rating,
+            reviews.comment AS text
+        FROM reviews
+        LEFT JOIN users ON reviews.user_id = users.id
+        ORDER BY reviews.id DESC
+    `;
+
     db.query(sql, (err, results) => {
+
         if (err) {
-            console.log(err);
-            return res.send("Database Error");
+            console.log('Error loading reviews:', err);
+            return res.send('Database Error');
         }
-        res.render('reviews', { reviews: results });
+
+        res.render('reviews', {
+            reviews: results,
+            user: req.session.user || null
+        });
+
     });
+
 });
+
+// =========================================================
+// GET /reviews/add
+// Show Add Review page
+// =========================================================
+
+app.get('/reviews/add', isAuthenticated, (req, res) => {
+
+    res.render('addReview', {
+        review: null,
+        user: req.session.user
+    });
+
+});
+
+
+// =========================================================
+// POST /reviews/add
+// Add a new review
+// =========================================================
 
 app.post('/reviews/add', isAuthenticated, (req, res) => {
-    const { name, destination, rating, text } = req.body;
-    const sql = 'INSERT INTO reviews (id, user_id, target_destination, rating, comment) VALUES (?, ?, ?, ?, ?)';
-    db.query(sql, [req.session.user.id, name, destination, rating, text], (err) => {
+
+    const { destination, rating, text } = req.body;
+
+    // Check that all fields have been filled
+    if (!destination || !rating || !text) {
+        return res.send('Please fill in all fields.');
+    }
+
+    const sql = `
+        INSERT INTO reviews
+        (user_id, target_destination, rating, comment)
+        VALUES (?, ?, ?, ?)
+    `;
+
+    const values = [
+        req.session.user.id,
+        destination,
+        rating,
+        text
+    ];
+
+    db.query(sql, values, (err, result) => {
+
         if (err) {
-            console.log(err);
-            return res.send("Database Error");
+
+            console.log('Error adding review:', err);
+
+            return res.send(
+                'Database Error: ' + err.message
+            );
+
         }
+
+        console.log('Review added successfully!');
+
         res.redirect('/reviews');
+
     });
+
 });
 
-app.post('/reviews/delete/:id', isAuthenticated, (req, res) => {
-    const sql = 'DELETE FROM reviews WHERE id = ? AND user_id = ?';
-    db.query(sql, [req.params.id, req.session.user.id], (err) => {
-        if (err) {
-            console.log(err);
-            return res.send("Database Error");
+// =========================================================
+// GET /reviews/edit/:id
+// Show Edit Review page
+// =========================================================
+
+// =========================================================
+// GET /reviews/edit/:id
+// Display the Edit Review page
+// =========================================================
+
+app.get('/reviews/edit/:id', isAuthenticated, (req, res) => {
+
+    const reviewId = req.params.id;
+
+    const sql = `
+        SELECT
+            id,
+            user_id,
+            target_destination AS destination,
+            rating,
+            comment AS text
+        FROM reviews
+        WHERE id = ? AND user_id = ?
+    `;
+
+    db.query(
+        sql,
+        [
+            reviewId,
+            req.session.user.id
+        ],
+        (err, results) => {
+
+            if (err) {
+
+                console.log(
+                    'Error loading review for editing:',
+                    err
+                );
+
+                return res.send(
+                    'Database Error: ' + err.message
+                );
+
+            }
+
+
+            // Check if review exists
+            // and belongs to logged-in user
+
+            if (results.length === 0) {
+
+                return res.send(
+                    'Review not found or you do not have permission to edit this review.'
+                );
+
+            }
+
+
+            // Display editReviews.ejs
+
+            res.render('editReviews', {
+
+                review: results[0],
+
+                user: req.session.user
+
+            });
+
         }
-        res.redirect('/reviews');
-    });
+
+    );
+
 });
+
+// =========================================================
+// POST /reviews/edit/:id
+// Update an existing review
+// =========================================================
+
+// =========================================================
+// POST /reviews/edit/:id
+// Update the review in the database
+// =========================================================
 
 app.post('/reviews/edit/:id', isAuthenticated, (req, res) => {
-    const { name, destination, rating, text } = req.body;
-    const sql = 'UPDATE reviews SET name = ?, destination = ?, rating = ?, text = ? WHERE id = ? AND user_id = ?';
-    db.query(sql, [name, destination, rating, text, req.params.id, req.session.user.id], (err) => {
-        if (err) {
-            console.log(err);
-            return res.send("Database Error");
+
+    const reviewId = req.params.id;
+
+    const {
+        destination,
+        rating,
+        text
+    } = req.body;
+
+
+    // =====================================================
+    // VALIDATION
+    // =====================================================
+
+    if (!destination || !rating || !text) {
+
+        return res.send(
+            'Please fill in all fields.'
+        );
+
+    }
+
+
+    // =====================================================
+    // UPDATE REVIEW
+    // Only update the review if it belongs
+    // to the logged-in user
+    // =====================================================
+
+    const sql = `
+        UPDATE reviews
+
+        SET
+            target_destination = ?,
+            rating = ?,
+            comment = ?
+
+        WHERE
+            id = ?
+            AND user_id = ?
+    `;
+
+
+    const values = [
+
+        destination,
+
+        rating,
+
+        text,
+
+        reviewId,
+
+        req.session.user.id
+
+    ];
+
+
+    db.query(
+        sql,
+        values,
+        (err, result) => {
+
+            if (err) {
+
+                console.log(
+                    'Error updating review:',
+                    err
+                );
+
+                return res.send(
+                    'Database Error: ' + err.message
+                );
+
+            }
+
+
+            // =================================================
+            // CHECK IF REVIEW WAS UPDATED
+            // =================================================
+
+            if (result.affectedRows === 0) {
+
+                return res.send(
+
+                    'Review not found or you do not have permission to edit this review.'
+
+                );
+
+            }
+
+
+            console.log(
+                'Review updated successfully!'
+            );
+
+
+            // =================================================
+            // REDIRECT TO REVIEWS PAGE
+            // =================================================
+
+            res.redirect('/reviews');
+
         }
-        res.redirect('/reviews');
-    });
+
+    );
+
 });
+
+
+// =========================================================
+// POST /reviews/delete/:id
+// Delete a review
+// =========================================================
+
+app.post('/reviews/delete/:id', isAuthenticated, (req, res) => {
+
+    const reviewId = req.params.id;
+
+    const sql = `
+        DELETE FROM reviews
+        WHERE id = ? AND user_id = ?
+    `;
+
+    db.query(
+        sql,
+        [reviewId, req.session.user.id],
+        (err, result) => {
+
+            if (err) {
+                console.log('Error deleting review:', err);
+                return res.send('Database Error');
+            }
+
+            res.redirect('/reviews');
+
+        }
+    );
+});
+
+
+
 // ------------------------------------------------------- Alyssa's Path end
 
 // ------------------------------------------------------- Arvin's Path start

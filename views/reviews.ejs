@@ -1,792 +1,869 @@
-<%
-/* =========================================================
-   EXPECTED LOCALS (pass these from your Express route)
-   ---------------------------------------------------------
-   reviews: Array of review objects, e.g.
-
-     app.get('/reviews', (req, res) => {
-       res.render('reviews', { reviews: allReviewsFromDB });
-     });
-
-   Each review object shape:
-     {
-       id: 'uuid-or-db-id',
-       name: 'Priya N.',
-       destination: 'Santorini, Greece',
-       rating: 5,               // 1-5
-       text: 'Loved every second...',
-       date: '2026-06-14T00:00:00.000Z'
-     }
-
-   If `reviews` isn't passed in, this template falls back to
-   a small seeded sample so the page still renders on its own.
-   ========================================================= */
-   const reviewsData = (typeof reviews !== 'undefined' && Array.isArray(reviews)) ? reviews : [
-     {
-       id: "r1",
-       name: "Priya N.",
-       destination: "Santorini, Greece",
-       rating: 5,
-       text: "Absolutely magical. The sunsets alone are worth the trip, and VividVoyage's flight deal made it affordable!",
-       date: "2026-06-14T00:00:00.000Z"
-     },
-     {
-       id: "r2",
-       name: "Marcus T.",
-       destination: "Kyoto, Japan",
-       rating: 4,
-       text: "Loved the temples and the food. Booking the hotel through the site was smooth and quick.",
-       date: "2026-05-02T00:00:00.000Z"
-     },
-     {
-       id: "r3",
-       name: "Lena K.",
-       destination: "Interlaken, Switzerland",
-       rating: 5,
-       text: "The mountain views were unreal. Customer support helped reschedule my flight without any hassle.",
-       date: "2026-04-20T00:00:00.000Z"
-     }
-   ];
-
-   function starsHTML(rating){
-     let out = '';
-     for(let i=1;i<=5;i++){
-       out += i <= rating ? '★' : '<span class="empty">★</span>';
-     }
-     return out;
-   }
-
-   function initials(name){
-     return name.trim().split(/\s+/).slice(0,2).map(w=>w[0] ? w[0].toUpperCase() : '').join('');
-   }
-
-   function formatDate(iso){
-     const d = new Date(iso);
-     return d.toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
-   }
-%>
+```ejs
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VividVoyage | Travel Reviews</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --white:#FFFFFF;
-    --sand:#E2C1AA;
-    --morningside:#99BDBC;
-    --cadet:#A2BFCE;
-    --navy:#2b3a4a;
-    --text-dark:#2f3a3f;
-    --text-muted:#6f8384;
-    --sand-soft:#f3e4d8;
-    --shadow: 0 10px 30px rgba(43,58,74,0.08);
-    --shadow-hover: 0 14px 34px rgba(43,58,74,0.14);
-    --radius: 18px;
-  }
 
-  *{box-sizing:border-box;}
-  body{
-    margin:0;
-    font-family:'Nunito', sans-serif;
-    background:var(--white);
-    color:var(--text-dark);
-  }
+    <meta charset="UTF-8">
 
-  /* ---------- HEADER (matches main site) ---------- */
-  header.site-header{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:18px 48px;
-    background:var(--white);
-    border-bottom:1px solid #f0ede9;
-  }
-  .logo{
-    font-size:1.6rem;
-    font-weight:900;
-    color:var(--morningside);
-    letter-spacing:0.5px;
-  }
-  nav.main-nav{
-    display:flex;
-    gap:40px;
-  }
-  nav.main-nav a{
-    text-decoration:none;
-    color:var(--text-muted);
-    font-weight:700;
-    font-size:1rem;
-    transition:color .2s ease;
-  }
-  nav.main-nav a.active,
-  nav.main-nav a:hover{
-    color:var(--morningside);
-  }
-  .header-actions{
-    display:flex;
-    align-items:center;
-    gap:16px;
-  }
-  .btn-outline{
-    padding:9px 22px;
-    border-radius:24px;
-    border:1.5px solid var(--cadet);
-    color:var(--cadet);
-    background:transparent;
-    font-family:'Nunito', sans-serif;
-    font-weight:700;
-    cursor:pointer;
-  }
-  .btn-solid{
-    padding:10px 22px;
-    border-radius:24px;
-    border:none;
-    background:var(--navy);
-    color:var(--white);
-    font-family:'Nunito', sans-serif;
-    font-weight:800;
-    cursor:pointer;
-  }
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
-  /* ---------- HERO BANNER ---------- */
-  .hero{
-    position:relative;
-    padding:70px 24px 100px;
-    text-align:center;
-    background:
-      linear-gradient(135deg, rgba(43,58,74,0.55), rgba(153,189,188,0.45)),
-      linear-gradient(120deg, var(--sand) 0%, var(--morningside) 60%, var(--cadet) 100%);
-    color:var(--white);
-    overflow:hidden;
-  }
-  .hero h1{
-    font-size:2.7rem;
-    font-weight:900;
-    margin:0 0 10px;
-    text-shadow:0 2px 12px rgba(0,0,0,0.15);
-  }
-  .hero p{
-    font-size:1.1rem;
-    font-weight:600;
-    margin:0;
-    opacity:0.95;
-  }
+    <title>VividVoyage | Reviews</title>
 
-  /* ---------- LAYOUT WRAPPER ---------- */
-  .page-wrap{
-    max-width:1100px;
-    margin:-56px auto 60px;
-    padding:0 24px;
-    position:relative;
-    z-index:2;
-  }
+    <!-- Nunito Font -->
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
 
-  /* ---------- PANELS ---------- */
-  .panel{
-    background:var(--white);
-    border-radius:24px;
-    box-shadow:var(--shadow);
-    padding:34px;
-    margin-bottom:36px;
-  }
-  .panel-title{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    font-size:1.4rem;
-    font-weight:800;
-    color:var(--navy);
-    margin:0 0 6px;
-  }
-  .panel-sub{
-    color:var(--text-muted);
-    font-weight:600;
-    margin:0 0 24px;
-    font-size:.95rem;
-  }
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap"
+          rel="stylesheet">
 
-  /* ---------- FORM ---------- */
-  .form-grid{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:20px 24px;
-  }
-  .field{
-    display:flex;
-    flex-direction:column;
-    gap:6px;
-  }
-  .field.full{ grid-column:1 / -1; }
-  label.field-label{
-    font-size:.78rem;
-    font-weight:800;
-    letter-spacing:.06em;
-    text-transform:uppercase;
-    color:var(--morningside);
-  }
-  input[type="text"], textarea, select{
-    font-family:'Nunito', sans-serif;
-    border:1.5px solid #e4e9ea;
-    border-radius:12px;
-    padding:12px 14px;
-    font-size:1rem;
-    color:var(--text-dark);
-    background:#fbfcfc;
-    outline:none;
-    transition:border-color .2s ease, box-shadow .2s ease;
-  }
-  input[type="text"]:focus, textarea:focus, select:focus{
-    border-color:var(--morningside);
-    box-shadow:0 0 0 3px rgba(153,189,188,0.25);
-  }
-  textarea{ resize:vertical; min-height:100px; }
 
-  /* Star rating input */
-  .star-input{
-    display:flex;
-    gap:6px;
-    font-size:1.9rem;
-    line-height:1;
-  }
-  .star-input span{
-    cursor:pointer;
-    color:#dfe3e4;
-    transition:transform .12s ease, color .15s ease;
-  }
-  .star-input span:hover{ transform:scale(1.15); }
-  .star-input span.filled{ color:var(--sand); }
+    <style>
 
-  .form-actions{
-    grid-column:1 / -1;
-    display:flex;
-    justify-content:flex-end;
-    gap:12px;
-    margin-top:6px;
-  }
-  .btn-primary{
-    background:var(--morningside);
-    color:var(--white);
-    border:none;
-    padding:12px 30px;
-    border-radius:24px;
-    font-family:'Nunito', sans-serif;
-    font-weight:800;
-    font-size:1rem;
-    cursor:pointer;
-    transition:background .2s ease, transform .15s ease;
-  }
-  .btn-primary:hover{ background:#7fa9a8; transform:translateY(-1px); }
-  .btn-ghost{
-    background:transparent;
-    color:var(--text-muted);
-    border:1.5px solid #e4e9ea;
-    padding:12px 26px;
-    border-radius:24px;
-    font-family:'Nunito', sans-serif;
-    font-weight:700;
-    cursor:pointer;
-  }
-  .btn-ghost:hover{ border-color:var(--cadet); color:var(--cadet); }
+        /* =====================================================
+           COLOUR PALETTE
+        ===================================================== */
 
-  /* ---------- REVIEWS LIST ---------- */
-  .reviews-toolbar{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:20px;
-    flex-wrap:wrap;
-    gap:12px;
-  }
-  .sort-select{
-    padding:8px 12px;
-    border-radius:10px;
-  }
-  .review-count{
-    color:var(--text-muted);
-    font-weight:700;
-    font-size:.9rem;
-  }
+        :root {
 
-  .review-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fill, minmax(300px,1fr));
-    gap:20px;
-  }
-  .review-card{
-    background:var(--white);
-    border:1.5px solid #eef1f1;
-    border-radius:var(--radius);
-    padding:22px;
-    box-shadow:var(--shadow);
-    transition:box-shadow .2s ease, transform .2s ease;
-    display:flex;
-    flex-direction:column;
-    gap:10px;
-  }
-  .review-card:hover{
-    box-shadow:var(--shadow-hover);
-    transform:translateY(-3px);
-  }
-  .review-top{
-    display:flex;
-    justify-content:space-between;
-    align-items:flex-start;
-    gap:10px;
-  }
-  .avatar-name{
-    display:flex;
-    align-items:center;
-    gap:10px;
-  }
-  .avatar{
-    width:42px;height:42px;
-    border-radius:50%;
-    background:linear-gradient(135deg, var(--sand), var(--cadet));
-    display:flex;align-items:center;justify-content:center;
-    color:var(--white);
-    font-weight:800;
-    flex-shrink:0;
-  }
-  .name-dest .name{
-    font-weight:800;
-    font-size:1rem;
-    color:var(--navy);
-  }
-  .name-dest .dest{
-    font-size:.82rem;
-    color:var(--morningside);
-    font-weight:700;
-  }
-  .stars-display{
-    color:var(--sand);
-    font-size:1.05rem;
-    letter-spacing:2px;
-    white-space:nowrap;
-  }
-  .stars-display .empty{ color:#e6e6e6; }
-  .review-text{
-    color:var(--text-dark);
-    font-size:.95rem;
-    line-height:1.5;
-    flex:1;
-  }
-  .review-date{
-    font-size:.75rem;
-    color:var(--text-muted);
-    font-weight:700;
-  }
-  .card-actions{
-    display:flex;
-    gap:8px;
-    margin-top:4px;
-  }
-  .icon-btn{
-    border:none;
-    background:var(--sand-soft);
-    color:var(--navy);
-    padding:8px 16px;
-    border-radius:20px;
-    font-family:'Nunito', sans-serif;
-    font-weight:700;
-    font-size:.82rem;
-    cursor:pointer;
-    transition:background .2s ease;
-  }
-  .icon-btn.edit:hover{ background:var(--cadet); color:var(--white); }
-  .icon-btn.delete{ background:#fbe6e2; color:#b5452f; }
-  .icon-btn.delete:hover{ background:#eb9a86; color:var(--white); }
+            --white: #FFFFFF;
 
-  .empty-state{
-    text-align:center;
-    padding:50px 20px;
-    color:var(--text-muted);
-    font-weight:700;
-  }
+            --sand: #E2C1AA;
 
-  /* ---------- MODAL (Edit) ---------- */
-  .modal-overlay{
-    position:fixed; inset:0;
-    background:rgba(43,58,74,0.45);
-    display:none;
-    align-items:center;
-    justify-content:center;
-    z-index:100;
-    padding:20px;
-  }
-  .modal-overlay.open{ display:flex; }
-  .modal-box{
-    background:var(--white);
-    border-radius:20px;
-    padding:30px;
-    width:100%;
-    max-width:520px;
-    box-shadow:0 20px 50px rgba(0,0,0,0.25);
-  }
-  .modal-box h3{
-    margin:0 0 18px;
-    color:var(--navy);
-    font-weight:800;
-  }
+            --teal: #99BDBC;
 
-  /* ---------- TOAST ---------- */
-  .toast{
-    position:fixed;
-    bottom:26px; left:50%;
-    transform:translateX(-50%) translateY(20px);
-    background:var(--navy);
-    color:var(--white);
-    padding:13px 26px;
-    border-radius:30px;
-    font-weight:700;
-    font-size:.92rem;
-    box-shadow:0 10px 25px rgba(0,0,0,0.2);
-    opacity:0;
-    pointer-events:none;
-    transition:opacity .25s ease, transform .25s ease;
-    z-index:200;
-  }
-  .toast.show{
-    opacity:1;
-    transform:translateX(-50%) translateY(0);
-  }
+            --blue-grey: #A2BFCE;
 
-  @media (max-width:640px){
-    header.site-header{ padding:14px 20px; flex-wrap:wrap; gap:10px;}
-    nav.main-nav{ gap:20px; order:3; width:100%; justify-content:center; }
-    .form-grid{ grid-template-columns:1fr; }
-    .hero h1{ font-size:2rem; }
-  }
-</style>
+            --dark: #2F3A3F;
+
+            --muted: #6F8384;
+
+            --light-sand: #F6EDE7;
+
+            --light-teal: #EDF5F4;
+
+        }
+
+
+        /* =====================================================
+           GENERAL
+        ===================================================== */
+
+        * {
+            box-sizing: border-box;
+        }
+
+
+        body {
+
+            margin: 0;
+
+            font-family: 'Nunito', sans-serif;
+
+            background:
+                linear-gradient(
+                    180deg,
+                    #FFFFFF 0%,
+                    #F8FBFB 100%
+                );
+
+            color: var(--dark);
+
+            min-height: 100vh;
+
+        }
+
+
+        /* =====================================================
+           HEADER
+        ===================================================== */
+
+        header {
+
+            background: var(--white);
+
+            padding: 20px 7%;
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            border-bottom: 1px solid #E8EEEE;
+
+            position: sticky;
+
+            top: 0;
+
+            z-index: 10;
+
+        }
+
+
+        .logo {
+
+            font-size: 1.7rem;
+
+            font-weight: 900;
+
+            color: var(--teal);
+
+            letter-spacing: 0.5px;
+
+        }
+
+
+        nav {
+
+            display: flex;
+
+            gap: 30px;
+
+            align-items: center;
+
+        }
+
+
+        nav a {
+
+            text-decoration: none;
+
+            color: var(--muted);
+
+            font-weight: 700;
+
+        }
+
+
+        nav a:hover {
+
+            color: var(--teal);
+
+        }
+
+
+        /* =====================================================
+           HERO
+        ===================================================== */
+
+        .hero {
+
+            padding: 75px 20px 100px;
+
+            text-align: center;
+
+            color: white;
+
+            background:
+
+                linear-gradient(
+                    135deg,
+                    rgba(43, 58, 74, 0.35),
+                    rgba(153, 189, 188, 0.35)
+                ),
+
+                linear-gradient(
+                    120deg,
+                    var(--sand),
+                    var(--teal),
+                    var(--blue-grey)
+                );
+
+        }
+
+
+        .hero h1 {
+
+            margin: 0 0 10px;
+
+            font-size: 3rem;
+
+            font-weight: 900;
+
+        }
+
+
+        .hero p {
+
+            margin: 0;
+
+            font-size: 1.1rem;
+
+            font-weight: 600;
+
+        }
+
+
+        /* =====================================================
+           MAIN CONTAINER
+        ===================================================== */
+
+        .container {
+
+            max-width: 1100px;
+
+            margin: -50px auto 80px;
+
+            padding: 0 25px;
+
+            position: relative;
+
+        }
+
+
+        /* =====================================================
+           TOP ACTION BAR
+        ===================================================== */
+
+        .top-bar {
+
+            background: white;
+
+            padding: 25px 30px;
+
+            border-radius: 20px;
+
+            box-shadow:
+                0 10px 30px
+                rgba(43, 58, 74, 0.08);
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+            margin-bottom: 30px;
+
+        }
+
+
+        .top-bar h2 {
+
+            margin: 0;
+
+            color: var(--dark);
+
+            font-size: 1.5rem;
+
+        }
+
+
+        /* =====================================================
+           ADD REVIEW BUTTON
+        ===================================================== */
+
+        .add-button {
+
+            text-decoration: none;
+
+            background: var(--teal);
+
+            color: white;
+
+            padding: 13px 25px;
+
+            border-radius: 30px;
+
+            font-weight: 800;
+
+            transition: 0.2s;
+
+        }
+
+
+        .add-button:hover {
+
+            background: #7FA9A8;
+
+            transform: translateY(-2px);
+
+        }
+
+
+        /* =====================================================
+           REVIEW GRID
+        ===================================================== */
+
+        .review-grid {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(
+                    auto-fit,
+                    minmax(300px, 1fr)
+                );
+
+            gap: 25px;
+
+        }
+
+
+        /* =====================================================
+           REVIEW CARD
+        ===================================================== */
+
+        .review-card {
+
+            background: white;
+
+            border-radius: 20px;
+
+            padding: 25px;
+
+            border: 1px solid #E8EEEE;
+
+            box-shadow:
+                0 8px 25px
+                rgba(43, 58, 74, 0.07);
+
+            transition: 0.2s;
+
+            display: flex;
+
+            flex-direction: column;
+
+        }
+
+
+        .review-card:hover {
+
+            transform: translateY(-4px);
+
+            box-shadow:
+                0 15px 35px
+                rgba(43, 58, 74, 0.13);
+
+        }
+
+
+        /* =====================================================
+           USER SECTION
+        ===================================================== */
+
+        .user-section {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 12px;
+
+            margin-bottom: 15px;
+
+        }
+
+
+        .avatar {
+
+            width: 48px;
+
+            height: 48px;
+
+            border-radius: 50%;
+
+            background:
+
+                linear-gradient(
+                    135deg,
+                    var(--sand),
+                    var(--blue-grey)
+                );
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            color: white;
+
+            font-weight: 900;
+
+            font-size: 1.1rem;
+
+        }
+
+
+        .user-info h3 {
+
+            margin: 0;
+
+            font-size: 1rem;
+
+            color: var(--dark);
+
+        }
+
+
+        .destination {
+
+            color: var(--teal);
+
+            font-size: 0.85rem;
+
+            font-weight: 700;
+
+        }
+
+
+        /* =====================================================
+           RATING
+        ===================================================== */
+
+        .rating {
+
+            color: var(--sand);
+
+            font-size: 1.2rem;
+
+            margin-bottom: 12px;
+
+            letter-spacing: 2px;
+
+        }
+
+
+        /* =====================================================
+           REVIEW TEXT
+        ===================================================== */
+
+        .review-text {
+
+            line-height: 1.6;
+
+            color: var(--dark);
+
+            margin-bottom: 20px;
+
+            flex: 1;
+
+        }
+
+
+        .review-date {
+
+            font-size: 0.8rem;
+
+            color: var(--muted);
+
+            margin-bottom: 15px;
+
+        }
+
+
+        /* =====================================================
+           ACTION BUTTONS
+        ===================================================== */
+
+        .actions {
+
+            display: flex;
+
+            gap: 10px;
+
+        }
+
+
+        .edit-button,
+        .delete-button {
+
+            border: none;
+
+            padding: 9px 18px;
+
+            border-radius: 20px;
+
+            font-family: 'Nunito', sans-serif;
+
+            font-weight: 700;
+
+            cursor: pointer;
+
+            text-decoration: none;
+
+        }
+
+
+        .edit-button {
+
+            background: var(--light-teal);
+
+            color: var(--teal);
+
+        }
+
+
+        .edit-button:hover {
+
+            background: var(--teal);
+
+            color: white;
+
+        }
+
+
+        .delete-button {
+
+            background: #FBE8E3;
+
+            color: #B5452F;
+
+        }
+
+
+        .delete-button:hover {
+
+            background: #E2C1AA;
+
+            color: white;
+
+        }
+
+
+        /* =====================================================
+           EMPTY STATE
+        ===================================================== */
+
+        .empty {
+
+            background: white;
+
+            padding: 60px 30px;
+
+            border-radius: 20px;
+
+            text-align: center;
+
+            box-shadow:
+                0 10px 30px
+                rgba(43, 58, 74, 0.07);
+
+        }
+
+
+        .empty h2 {
+
+            color: var(--teal);
+
+        }
+
+
+        /* =====================================================
+           RESPONSIVE
+        ===================================================== */
+
+        @media (max-width: 700px) {
+
+            header {
+
+                flex-direction: column;
+
+                gap: 15px;
+
+            }
+
+
+            nav {
+
+                gap: 15px;
+
+                flex-wrap: wrap;
+
+                justify-content: center;
+
+            }
+
+
+            .top-bar {
+
+                flex-direction: column;
+
+                gap: 20px;
+
+                text-align: center;
+
+            }
+
+
+            .hero h1 {
+
+                font-size: 2.2rem;
+
+            }
+
+        }
+
+    </style>
+
 </head>
-<body class="<%= (typeof user !== 'undefined' && !user) ? 'guest' : '' %>">
 
-<header class="site-header">
-  <div class="logo">VividVoyage</div>
-  <nav class="main-nav">
-    <a href="/flights">Flights</a>
-    <a href="/hotels">Hotels</a>
-    <a href="/itinerary">Itinerary</a>
-    <a href="/reviews" class="active">Reviews</a>
-  </nav>
-  <div class="header-actions">
-    <% if (!user) { %>
-      <button class="btn-outline">Sign In</button>
-      <button class="btn-solid">Register Now</button>
-    <% } else { %>
-      <a href="/profile" class="btn-outline" style="text-decoration:none; text-align:center;"><%= user.username %></a>
-      <a href="/logout" class="btn-solid" style="text-decoration:none; text-align:center;">Logout</a>
-    <% } %>
-  </div>
+
+<body>
+
+
+<!-- =====================================================
+     HEADER
+===================================================== -->
+
+<header>
+
+    <div class="logo">
+        VividVoyage
+    </div>
+
+
+    <nav>
+
+        <a href="/flights">
+            Flights
+        </a>
+
+        <a href="/hotels">
+            Hotels
+        </a>
+
+        <a href="/itinerary">
+            Itinerary
+        </a>
+
+        <a href="/reviews">
+            Reviews
+        </a>
+
+    </nav>
+
 </header>
 
+
+<!-- =====================================================
+     HERO
+===================================================== -->
+
 <section class="hero">
-  <h1>Travel Reviews</h1>
-  <p>Real stories from real journeys — share yours, or get inspired by others</p>
+
+    <h1>
+        Travel Reviews
+    </h1>
+
+    <p>
+        Discover unforgettable journeys from fellow travellers
+    </p>
+
 </section>
 
-<div class="page-wrap">
 
-  <!-- POST REVIEW -->
-  <% if (user) { %>
-  <div class="panel">
-    <h2 class="panel-title">✏️ Share Your Experience</h2>
-    <p class="panel-sub">Tell fellow travelers about your trip — it only takes a minute.</p>
+<!-- =====================================================
+     MAIN
+===================================================== -->
 
-    <form id="reviewForm" class="form-grid" action="/reviews/add" method="POST">
-      <div class="field">
-        <label class="field-label">Your Name</label>
-        <input type="text" name="name" id="reviewerName" placeholder="e.g. Alex Tan" required>
-      </div>
+<main class="container">
 
-      <div class="field">
-        <label class="field-label">Destination</label>
-        <input type="text" name="destination" id="reviewDestination" placeholder="e.g. Santorini, Greece" required>
-      </div>
 
-      <div class="field full">
-        <label class="field-label">Your Rating</label>
-        <input type="hidden" name="rating" id="ratingInput" value="0">
-        <div class="star-input" id="starInput" data-rating="0">
-          <span data-value="1">★</span>
-          <span data-value="2">★</span>
-          <span data-value="3">★</span>
-          <span data-value="4">★</span>
-          <span data-value="5">★</span>
-        </div>
-      </div>
+    <!-- TOP BAR -->
 
-      <div class="field full">
-        <label class="field-label">Your Review</label>
-        <textarea name="text" id="reviewText" placeholder="What made this trip memorable?" required></textarea>
-      </div>
+    <div class="top-bar">
 
-      <div class="form-actions">
-        <button type="button" class="btn-ghost" id="clearFormBtn">Clear</button>
-        <button type="submit" class="btn-primary">Post Review</button>
-      </div>
-    </form>
-  </div>
-  <% } else { %>
-    <div class="panel" style="text-align:center;">
-        <p>Please <a href="/login">log in</a> to share your travel experiences!</p>
-    </div>
-  <% } %>
+        <h2>
+            Traveller Experiences
+        </h2>
 
-  <!-- VIEW REVIEWS -->
-  <div class="panel">
-    <div class="reviews-toolbar">
-      <h2 class="panel-title" style="margin-bottom:0;">🌍 Traveler Reviews</h2>
-      <div style="display:flex; align-items:center; gap:14px;">
-        <span class="review-count" id="reviewCount"><%= reviewsData.length %> <%= reviewsData.length === 1 ? 'review' : 'reviews' %></span>
-        <select class="sort-select" id="sortSelect">
-          <option value="newest">Newest First</option>
-          <option value="oldest">Oldest First</option>
-          <option value="highest">Highest Rated</option>
-          <option value="lowest">Lowest Rated</option>
-        </select>
-      </div>
+
+        <% if (user) { %>
+
+            <a
+                href="/reviews/add"
+                class="add-button"
+            >
+                + Write a Review
+            </a>
+
+        <% } %>
+
     </div>
 
-    <div class="review-grid" id="reviewGrid">
-      <% reviewsData.forEach(function(r){ %>
-        <div class="review-card" data-id="<%= r.id %>">
-          <div class="review-top">
-            <div class="avatar-name">
-              <div class="avatar"><%= initials(r.name) %></div>
-              <div class="name-dest">
-                <div class="name"><%= r.name %></div>
-                <div class="dest">📍 <%= r.destination %></div>
-              </div>
-            </div>
-            <div class="stars-display"><%- starsHTML(r.rating) %></div>
-          </div>
-          <div class="review-text"><%= r.text %></div>
-          <div class="review-date"><%= formatDate(r.date) %></div>
-          <div class="card-actions">
-            <% if (user && user.id == r.user_id) { %>
-              <button class="icon-btn edit" data-id="<%= r.id %>">✏️ Edit</button>
-              <form action="/reviews/delete/<%= r.id %>" method="POST" style="display:inline;">
-                <button type="submit" class="icon-btn delete" onclick="return confirm('Remove this review?')">🗑️ Remove</button>
-              </form>
-            <% } %>
-          </div>
+
+    <!-- =================================================
+         REVIEWS
+    ================================================= -->
+
+    <% if (reviews.length === 0) { %>
+
+
+        <div class="empty">
+
+            <h2>
+                No reviews yet ✈️
+            </h2>
+
+            <p>
+                Be the first traveller to share your experience!
+            </p>
+
         </div>
-      <% }); %>
-    </div>
-    <div class="empty-state" id="emptyState">No reviews yet — be the first to share your trip! ✈️</div>
-  </div>
 
-</div>
 
-<!-- EDIT MODAL -->
-<div class="modal-overlay" id="editModal">
-  <div class="modal-box">
-    <h3>Edit Review</h3>
-    <form id="editForm" class="form-grid" action="" method="POST">
-      <div class="field">
-        <label class="field-label">Your Name</label>
-        <input type="text" name="name" id="editName" required>
-      </div>
-      <div class="field">
-        <label class="field-label">Destination</label>
-        <input type="text" name="destination" id="editDestination" required>
-      </div>
-      <div class="field full">
-        <label class="field-label">Your Rating</label>
-        <input type="hidden" name="rating" id="editRatingInput" value="0">
-        <div class="star-input" id="editStarInput" data-rating="0">
-          <span data-value="1">★</span>
-          <span data-value="2">★</span>
-          <span data-value="3">★</span>
-          <span data-value="4">★</span>
-          <span data-value="5">★</span>
+    <% } else { %>
+
+
+        <div class="review-grid">
+
+
+            <% reviews.forEach(function(review) { %>
+
+
+                <div class="review-card">
+
+
+                    <!-- USER -->
+
+                    <div class="user-section">
+
+                        <div class="avatar">
+
+                            <%= review.name
+                                ? review.name
+                                    .split(' ')
+                                    .map(n => n[0])
+                                    .join('')
+                                    .substring(0, 2)
+                                    .toUpperCase()
+                                : 'U'
+                            %>
+
+                        </div>
+
+
+                        <div class="user-info">
+
+                            <h3>
+                                <%= review.name || 'Traveller' %>
+                            </h3>
+
+
+                            <div class="destination">
+
+                                📍
+                                <%= review.destination %>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- RATING -->
+
+                    <div class="rating">
+
+                        <% for (let i = 1; i <= 5; i++) { %>
+
+                            <%= i <= review.rating
+                                ? '★'
+                                : '☆'
+                            %>
+
+                        <% } %>
+
+                    </div>
+
+
+                    <!-- REVIEW -->
+
+                    <div class="review-text">
+
+                        <%= review.text %>
+
+                    </div>
+
+
+                    <!-- DATE -->
+
+                    <div class="review-date">
+
+                        <%= new Date(review.date)
+                            .toLocaleDateString(
+                                'en-GB',
+                                {
+                                    day: 'numeric',
+                                    month: 'short',
+                                    year: 'numeric'
+                                }
+                            )
+                        %>
+
+                    </div>
+
+
+                    <!-- ACTIONS -->
+
+                    <% if (
+                        user &&
+                        user.id == review.user_id
+                    ) { %>
+
+
+                        <div class="actions">
+
+
+                            <!-- EDIT -->
+
+                            <a
+                                href="/reviews/edit/<%= review.id %>"
+                                class="edit-button"
+                            >
+                                ✏️ Edit
+                            </a>
+
+
+                            <!-- DELETE -->
+
+                            <form
+                                action="/reviews/delete/<%= review.id %>"
+                                method="POST"
+                                onsubmit="
+                                    return confirm(
+                                        'Are you sure you want to delete this review?'
+                                    );
+                                "
+                            >
+
+                                <button
+                                    type="submit"
+                                    class="delete-button"
+                                >
+                                    🗑 Delete
+                                </button>
+
+                            </form>
+
+
+                        </div>
+
+
+                    <% } %>
+
+
+                </div>
+
+
+            <% }); %>
+
+
         </div>
-      </div>
-      <div class="field full">
-        <label class="field-label">Your Review</label>
-        <textarea name="text" id="editText" required></textarea>
-      </div>
-      <div class="form-actions">
-        <button type="button" class="btn-ghost" id="cancelEditBtn">Cancel</button>
-        <button type="submit" class="btn-primary">Save Changes</button>
-      </div>
-    </form>
-  </div>
-</div>
 
-<div class="toast" id="toast"></div>
 
-<script id="reviews-data" type="application/json">
-  <%- JSON.stringify(reviewsData) %>
-</script>
+    <% } %>
 
-<script>
-(function(){
-  const reviewsDataElement = document.getElementById('reviews-data');
-  let reviews = reviewsDataElement ? JSON.parse(reviewsDataElement.textContent) : [];
 
-  const grid = document.getElementById('reviewGrid');
-  const emptyState = document.getElementById('emptyState');
-  const reviewCount = document.getElementById('reviewCount');
-  const sortSelect = document.getElementById('sortSelect');
-  const toast = document.getElementById('toast');
+</main>
 
-  function showToast(msg){
-    toast.textContent = msg;
-    toast.classList.add('show');
-    clearTimeout(showToast._t);
-    showToast._t = setTimeout(()=> toast.classList.remove('show'), 2200);
-  }
-
-  function initials(name){
-    return name.trim().split(/\s+/).slice(0,2).map(w=>w[0] ? w[0].toUpperCase() : '').join('');
-  }
-
-  function formatDate(iso){
-    return new Date(iso).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
-  }
-
-  function starsMarkup(rating){
-    let out = '';
-    for(let i=1;i<=5;i++){
-      out += i <= rating ? '★' : '<span class="empty">★</span>';
-    }
-    return out;
-  }
-
-  function getSorted(){
-    const arr = [...reviews];
-    switch(sortSelect.value){
-      case 'oldest': arr.sort((a,b)=> new Date(a.date) - new Date(b.date)); break;
-      case 'highest': arr.sort((a,b)=> b.rating - a.rating); break;
-      case 'lowest': arr.sort((a,b)=> a.rating - b.rating); break;
-      default: arr.sort((a,b)=> new Date(b.date) - new Date(a.date)); // newest
-    }
-    return arr;
-  }
-
-  function render(){
-    const sorted = getSorted();
-    if(reviewCount) reviewCount.textContent = sorted.length + (sorted.length === 1 ? ' review' : ' reviews');
-    if(!grid) return;
-    
-    // Instead of wiping the grid, we will re-order the existing DOM elements
-    // to preserve the server-rendered ownership buttons.
-    const cards = [...grid.querySelectorAll('.review-card')];
-    
-    // Map the current reviews array to the DOM elements
-    const sortedCards = sorted.map(r => cards.find(card => card.dataset.id == r.id)).filter(Boolean);
-    
-    grid.innerHTML = '';
-    sortedCards.forEach(card => grid.appendChild(card));
-
-    if(sorted.length === 0){
-      if(emptyState) emptyState.style.display = 'block';
-      return;
-    }
-    if(emptyState) emptyState.style.display = 'none';
-  }
-
-  function escapeHTML(str){
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
-  }
-
-  if(sortSelect) sortSelect.addEventListener('change', render);
-
-  function wireStarInput(container, hiddenInputId){
-    if(!container) return { paint: () => {} };
-    const stars = [...container.querySelectorAll('span')];
-    function paint(rating){
-      stars.forEach(s => s.classList.toggle('filled', +s.dataset.value <= rating));
-    }
-    stars.forEach(s => {
-      s.addEventListener('click', () => {
-        container.dataset.rating = s.dataset.value;
-        if(hiddenInputId) document.getElementById(hiddenInputId).value = s.dataset.value;
-        paint(+s.dataset.value);
-      });
-      s.addEventListener('mouseenter', () => paint(+s.dataset.value));
-      s.addEventListener('mouseleave', () => paint(+container.dataset.rating));
-    });
-    return { paint };
-  }
-
-  wireStarInput(document.getElementById('starInput'), 'ratingInput');
-  wireStarInput(document.getElementById('editStarInput'), 'editRatingInput');
-
-  const reviewForm = document.getElementById('reviewForm');
-  if(reviewForm){
-    reviewForm.addEventListener('submit', (e) => {
-        const rating = +document.getElementById('starInput').dataset.rating;
-        if(!rating){
-            e.preventDefault();
-            showToast('Please select a star rating ⭐');
-        }
-    });
-  }
-
-  const clearFormBtn = document.getElementById('clearFormBtn');
-  if(clearFormBtn){
-    clearFormBtn.addEventListener('click', () => {
-        reviewForm.reset();
-        document.getElementById('starInput').dataset.rating = 0;
-        document.getElementById('ratingInput').value = 0;
-        // We need a way to repaint stars. Let's just reload or use a helper.
-        location.reload(); 
-    });
-  }
-
-  // Edit Modal Logic (Still Mocked)
-  const editModal = document.getElementById('editModal');
-  const editForm = document.getElementById('editForm');
-  const cancelEditBtn = document.getElementById('cancelEditBtn');
-  let editingId = null;
-
-  if(grid){
-    grid.addEventListener('click', (e) => {
-        const editBtn = e.target.closest('.icon-btn.edit');
-        if(editBtn){
-            const r = reviews.find(x => String(x.id) === editBtn.dataset.id);
-            if(!r) return;
-            editingId = editBtn.dataset.id;
-            
-            // Update form action dynamically
-            document.getElementById('editForm').action = `/reviews/edit/${editingId}`;
-            
-            document.getElementById('editName').value = r.name;
-            document.getElementById('editDestination').value = r.destination;
-            document.getElementById('editText').value = r.text;
-            document.getElementById('editStarInput').dataset.rating = r.rating;
-            document.getElementById('editRatingInput').value = r.rating;
-            
-            // paint stars for edit modal
-            const editStars = [...document.getElementById('editStarInput').querySelectorAll('span')];
-            editStars.forEach(s => s.classList.toggle('filled', +s.dataset.value <= r.rating));
-            editModal.classList.add('open');
-        }
-    });
-  }
-
-  if(cancelEditBtn) cancelEditBtn.addEventListener('click', () => editModal.classList.remove('open'));
-  if(editModal) editModal.addEventListener('click', (e) => { if(e.target === editModal) editModal.classList.remove('open'); });
-
-  if(editForm){
-    editForm.addEventListener('submit', (e) => {
-        const rating = +document.getElementById('editStarInput').dataset.rating;
-        if(!rating){
-            e.preventDefault();
-            showToast('Please select a star rating ⭐');
-        }
-    });
-  }
-})();
-</script>
 
 </body>
+
 </html>
+```

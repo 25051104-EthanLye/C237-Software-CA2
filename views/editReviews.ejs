@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>VividVoyage | Edit Review</title>
+
+
+    <!-- Nunito Font -->
+
+    <link rel="preconnect"
+          href="https://fonts.googleapis.com">
+
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap"
+        rel="stylesheet">
+
+
+    <style>
+
+        /* =====================================================
+           COLOUR PALETTE
+        ===================================================== */
+
+        :root {
+
+            --white: #FFFFFF;
+
+            --sand: #E2C1AA;
+
+            --teal: #99BDBC;
+
+            --blue-grey: #A2BFCE;
+
+            --dark: #2F3A3F;
+
+            --muted: #6F8384;
+
+            --light: #F7FAFA;
+
+        }
+
+
+        /* =====================================================
+           GENERAL
+        ===================================================== */
+
+        * {
+
+            box-sizing: border-box;
+
+        }
+
+
+        body {
+
+            margin: 0;
+
+            font-family: 'Nunito', sans-serif;
+
+            background:
+
+                linear-gradient(
+                    180deg,
+                    #FFFFFF 0%,
+                    #F4F9F9 100%
+                );
+
+            color: var(--dark);
+
+            min-height: 100vh;
+
+        }
+
+
+        /* =====================================================
+           HEADER
+        ===================================================== */
+
+        header {
+
+            padding: 20px 7%;
+
+            background: var(--white);
+
+            border-bottom: 1px solid #E8EEEE;
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: center;
+
+        }
+
+
+        .logo {
+
+            color: var(--teal);
+
+            font-size: 1.7rem;
+
+            font-weight: 900;
+
+        }
+
+
+        .back-link {
+
+            text-decoration: none;
+
+            color: var(--muted);
+
+            font-weight: 700;
+
+        }
+
+
+        .back-link:hover {
+
+            color: var(--teal);
+
+        }
+
+
+        /* =====================================================
+           CONTAINER
+        ===================================================== */
+
+        .container {
+
+            max-width: 650px;
+
+            margin: 70px auto;
+
+            padding: 0 25px;
+
+        }
+
+
+        /* =====================================================
+           FORM CARD
+        ===================================================== */
+
+        .form-card {
+
+            background: var(--white);
+
+            padding: 40px;
+
+            border-radius: 25px;
+
+            box-shadow:
+
+                0 15px 40px
+                rgba(43, 58, 74, 0.1);
+
+        }
+
+
+        h1 {
+
+            color: var(--dark);
+
+            margin-top: 0;
+
+            margin-bottom: 10px;
+
+            font-size: 2rem;
+
+        }
+
+
+        .subtitle {
+
+            color: var(--muted);
+
+            margin-bottom: 30px;
+
+            line-height: 1.5;
+
+        }
+
+
+        /* =====================================================
+           FORM
+        ===================================================== */
+
+        label {
+
+            display: block;
+
+            margin-bottom: 7px;
+
+            font-weight: 800;
+
+            color: var(--teal);
+
+        }
+
+
+        input,
+        textarea,
+        select {
+
+            width: 100%;
+
+            padding: 13px 15px;
+
+            border-radius: 12px;
+
+            border: 1px solid #DDE7E7;
+
+            font-family: 'Nunito', sans-serif;
+
+            font-size: 1rem;
+
+            margin-bottom: 20px;
+
+            outline: none;
+
+            background: #FCFEFE;
+
+        }
+
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+
+            border-color: var(--teal);
+
+            box-shadow:
+
+                0 0 0 3px
+                rgba(153, 189, 188, 0.2);
+
+        }
+
+
+        textarea {
+
+            min-height: 150px;
+
+            resize: vertical;
+
+        }
+
+
+        /* =====================================================
+           BUTTONS
+        ===================================================== */
+
+        .buttons {
+
+            display: flex;
+
+            gap: 12px;
+
+            margin-top: 10px;
+
+        }
+
+
+        .submit-button {
+
+            background: var(--teal);
+
+            color: var(--white);
+
+            border: none;
+
+            padding: 13px 25px;
+
+            border-radius: 25px;
+
+            font-family: 'Nunito', sans-serif;
+
+            font-weight: 800;
+
+            cursor: pointer;
+
+            transition: 0.2s;
+
+        }
+
+
+        .submit-button:hover {
+
+            background: #7FA9A8;
+
+            transform: translateY(-1px);
+
+        }
+
+
+        .cancel-button {
+
+            text-decoration: none;
+
+            background: var(--sand);
+
+            color: var(--white);
+
+            padding: 13px 25px;
+
+            border-radius: 25px;
+
+            font-weight: 800;
+
+            transition: 0.2s;
+
+        }
+
+
+        .cancel-button:hover {
+
+            background: #D2A98E;
+
+        }
+
+
+        /* =====================================================
+           RESPONSIVE
+        ===================================================== */
+
+        @media (max-width: 600px) {
+
+            header {
+
+                padding: 18px 25px;
+
+            }
+
+
+            .form-card {
+
+                padding: 25px;
+
+            }
+
+
+            .container {
+
+                margin: 40px auto;
+
+            }
+
+
+            .buttons {
+
+                flex-direction: column;
+
+            }
+
+
+            .submit-button,
+            .cancel-button {
+
+                width: 100%;
+
+                text-align: center;
+
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<!-- =====================================================
+     HEADER
+===================================================== -->
+
+<header>
+
+
+    <div class="logo">
+
+        VividVoyage
+
+    </div>
+
+
+    <a
+
+        href="/reviews"
+
+        class="back-link"
+
+    >
+
+        ← Back to Reviews
+
+    </a>
+
+
+</header>
+
+
+<!-- =====================================================
+     MAIN
+===================================================== -->
+
+<div class="container">
+
+
+    <div class="form-card">
+
+
+        <h1>
+
+            Edit Your Review
+
+        </h1>
+
+
+        <p class="subtitle">
+
+            Update your travel experience and share your
+            latest thoughts with fellow travellers.
+
+        </p>
+
+
+        <!-- =================================================
+             EDIT FORM
+        ================================================= -->
+
+        <form
+
+            action="/reviews/edit/<%= review.id %>"
+
+            method="POST"
+
+        >
+
+
+            <!-- DESTINATION -->
+
+            <label for="destination">
+
+                Destination
+
+            </label>
+
+
+            <input
+
+                type="text"
+
+                id="destination"
+
+                name="destination"
+
+                placeholder="e.g. Kyoto, Japan"
+
+                value="<%= review.destination %>"
+
+                required
+
+            >
+
+
+            <!-- RATING -->
+
+            <label for="rating">
+
+                Rating
+
+            </label>
+
+
+            <select
+
+                id="rating"
+
+                name="rating"
+
+                required
+
+            >
+
+
+                <option value="">
+
+                    Select a rating
+
+                </option>
+
+
+                <% for (
+                    let i = 5;
+                    i >= 1;
+                    i--
+                ) { %>
+
+
+                    <option
+
+                        value="<%= i %>"
+
+                        <%= review.rating == i
+                            ? 'selected'
+                            : ''
+                        %>
+
+                    >
+
+                        <%= i %> ★
+
+                    </option>
+
+
+                <% } %>
+
+
+            </select>
+
+
+            <!-- REVIEW -->
+
+            <label for="text">
+
+                Your Review
+
+            </label>
+
+
+            <textarea
+
+                id="text"
+
+                name="text"
+
+                placeholder="Tell us about your trip..."
+
+                required
+
+            ><%= review.text %></textarea>
+
+
+            <!-- BUTTONS -->
+
+            <div class="buttons">
+
+
+                <a
+
+                    href="/reviews"
+
+                    class="cancel-button"
+
+                >
+
+                    Cancel
+
+                </a>
+
+
+                <button
+
+                    type="submit"
+
+                    class="submit-button"
+
+                >
+
+                    Save Changes
+
+                </button>
+
+
+            </div>
+
+
+        </form>
+
+
+    </div>
+
+
+</div>
+
+
+</body>
+
+</html>
