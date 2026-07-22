@@ -655,52 +655,6 @@ app.post('/trip/delete/:id', isAuthenticated, (req,res)=>{
 
 // ------------------------------------------------------- Rui Qi's Path end
 // ------------------------------------------------------- Alyssa's Path start
-// app.get('/reviews', (req, res) => {
-//     const sql = 'SELECT * FROM reviews ORDER BY date DESC';
-//     db.query(sql, (err, results) => {
-//         if (err) {
-//             console.log(err);
-//             return res.send("Database Error");
-//         }
-//         res.render('reviews', { reviews: results });
-//     });
-// });
-
-// app.post('/reviews/add', isAuthenticated, (req, res) => {
-//     const { name, destination, rating, text } = req.body;
-//     const sql = 'INSERT INTO reviews (id, user_id, target_destination, rating, comment) VALUES (?, ?, ?, ?, ?)';
-//     db.query(sql, [req.session.user.id, name, destination, rating, text], (err) => {
-//         if (err) {
-//             console.log(err);
-//             return res.send("Database Error");
-//         }
-//         res.redirect('/reviews');
-//     });
-// });
-
-// app.post('/reviews/delete/:id', isAuthenticated, (req, res) => {
-//     const sql = 'DELETE FROM reviews WHERE id = ? AND user_id = ?';
-//     db.query(sql, [req.params.id, req.session.user.id], (err) => {
-//         if (err) {
-//             console.log(err);
-//             return res.send("Database Error");
-//         }
-//         res.redirect('/reviews');
-//     });
-// });
-
-// app.post('/reviews/edit/:id', isAuthenticated, (req, res) => {
-//     const { name, destination, rating, text } = req.body;
-//     const sql = 'UPDATE reviews SET name = ?, destination = ?, rating = ?, text = ? WHERE id = ? AND user_id = ?';
-//     db.query(sql, [name, destination, rating, text, req.params.id, req.session.user.id], (err) => {
-//         if (err) {
-//             console.log(err);
-//             return res.send("Database Error");
-//         }
-//         res.redirect('/reviews');
-//     });
-// });
-
 
 // =========================================================
 // REVIEWS ROUTES
