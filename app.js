@@ -23,6 +23,7 @@ db.connect((err) => {
     console.log('Connected to database');
 });
 
+
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static('public'));
 
@@ -70,6 +71,21 @@ const validateRegistration = (req, res, next) => {
 const isAuthenticated = (req, res, next) => {
     if (!req.session.user) {
         req.flash('error', 'Please log in to access this page.');
+        return res.redirect('/');
+    }
+    next();
+};
+
+// --- ADMIN-ONLY MIDDLEWARE --- Arvin's part
+// Blocks anyone who isn't logged in AND anyone whose role isn't 'admin'
+// from reaching the inventory/review-moderation routes at the bottom of this file.
+const isAdmin = (req, res, next) => {
+    if (!req.session.user) {
+        req.flash('error', 'Please log in to access this page.');
+        return res.redirect('/');
+    }
+    if (req.session.user.role !== 'admin') {
+        req.flash('error', 'You do not have permission to access that page.');
         return res.redirect('/');
     }
     next();
@@ -645,6 +661,157 @@ app.post('/reviews/edit/:id', isAuthenticated, (req, res) => {
 });
 
 // ------------------------------------------------------- Rui Qi's Path end
+
+// ------------------------------------------------------- Arvin's Path start
+// Admin Control: Inventory Management & Review Moderation
+// Covers: Add Inventory, View All, Resolve Issues (-> review moderation), Delete Items
+// All routes below require an admin-role account (see isAdmin middleware)
+// ==================================================================
+
+// ADMIN DASHBOARD (hub linking to hotels / flights / reviews)
+app.get('/admin', isAdmin, (req, res) => {
+    res.render('admin/dashboard', { user: req.session.user });
+});
+
+// ----- HOTEL INVENTORY -----
+
+// VIEW ALL: list every hotel currently in the system
+app.get('/admin/hotels', isAdmin, (req, res) => {
+    const sql = 'SELECT * FROM hotels ORDER BY id DESC';
+
+    db.query(sql, (err, results) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+
+        res.render('admin/hotels', {
+            user: req.session.user,
+            hotels: results,
+            messages: req.flash('success'),
+            errors: req.flash('error')
+        });
+    });
+});
+
+// ADD INVENTORY: insert a new hotel
+app.post('/admin/hotels/add', isAdmin, (req, res) => {
+    const { name, location, price_per_night } = req.body;
+
+    if (!name || !location || !price_per_night) {
+        req.flash('error', 'All fields are required to add a hotel.');
+        return res.redirect('/admin/hotels');
+    }
+
+    const sql = 'INSERT INTO hotels (name, location, price_per_night) VALUES (?, ?, ?)';
+
+    db.query(sql, [name, location, price_per_night], (err) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+
+        req.flash('success', `Hotel "${name}" added to inventory.`);
+        res.redirect('/admin/hotels');
+    });
+});
+
+// DELETE ITEMS: remove a hotel
+app.post('/admin/hotels/delete/:id', isAdmin, (req, res) => {
+    const sql = 'DELETE FROM hotels WHERE id = ?';
+
+    db.query(sql, [req.params.id], (err) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+
+        req.flash('success', 'Hotel removed from inventory.');
+        res.redirect('/admin/hotels');
+    });
+});
+
+// ----- FLIGHT INVENTORY -----
+
+// VIEW ALL: list every flight route currently in the system
+app.get('/admin/flights', isAdmin, (req, res) => {
+    const sql = 'SELECT * FROM flights ORDER BY id DESC';
+
+    db.query(sql, (err, results) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+
+        res.render('admin/flights', {
+            user: req.session.user,
+            flights: results,
+            messages: req.flash('success'),
+            errors: req.flash('error')
+        });
+    });
+});
+
+// ADD INVENTORY: insert a new flight route
+app.post('/admin/flights/add', isAdmin, (req, res) => {
+    const { flight_number, destination, departure_date, departure_time, duration, price } = req.body;
+
+    if (!flight_number || !destination || !departure_date || !departure_time || !duration || !price) {
+        req.flash('error', 'All fields are required to add a flight.');
+        return res.redirect('/admin/flights');
+    }
+
+    const sql = `
+        INSERT INTO flights (flight_number, destination, departure_date, departure_time, duration, price)
+        VALUES (?, ?, ?, ?, ?, ?)
+    `;
+
+    db.query(sql, [flight_number, destination, departure_date, departure_time, duration, price], (err) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+
+        req.flash('success', `Flight ${flight_number} added to inventory.`);
+        res.redirect('/admin/flights');
+    });
+});
+
+// DELETE ITEMS: remove a flight route
+app.post('/admin/flights/delete/:id', isAdmin, (req, res) => {
+    const sql = 'DELETE FROM flights WHERE id = ?';
+
+    db.query(sql, [req.params.id], (err) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+
+        req.flash('success', 'Flight removed from inventory.');
+        res.redirect('/admin/flights');
+    });
+});
+
+// ----- REVIEW MODERATION ("Resolve Issues") -----
+// NOTE: the feedback table was cancelled by the team, so this covers
+// "Resolve Issues" by letting admin view all reviews and remove bad/inappropriate ones.
+
+// VIEW ALL: list every review submitted by users, newest first
+app.get('/admin/reviews', isAdmin, (req, res) => {
+    const sql = `
+        SELECT reviews.*, users.username
+        FROM reviews
+        LEFT JOIN users ON reviews.user_id = users.id
+        ORDER BY reviews.id DESC
+    `;
+
+    db.query(sql, (err, results) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+
+        res.render('admin/reviews', {
+            user: req.session.user,
+            reviews: results,
+            messages: req.flash('success'),
+            errors: req.flash('error')
+        });
+    });
+});
+
+// DELETE ITEMS: remove an inappropriate/bad review
+app.post('/admin/reviews/delete/:id', isAdmin, (req, res) => {
+    const sql = 'DELETE FROM reviews WHERE id = ?';
+
+    db.query(sql, [req.params.id], (err) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+
+        req.flash('success', 'Review removed.');
+        res.redirect('/admin/reviews');
+    });
+});
+
+// ------------------------------------------------------- Arvin's Path end
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

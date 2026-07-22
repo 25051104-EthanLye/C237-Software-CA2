@@ -113,6 +113,10 @@
                         <!-- Hover Menu Content -->
                         <div class="custom-dropdown-menu">
                             <a class="custom-dropdown-item" href="/profile">Profile Overview</a>
+                            <!-- ARVIN: Admin Panel link, only shown to admin-role accounts -->
+                            <% if (activeUser.role === 'admin') { %>
+                                <a class="custom-dropdown-item" href="/admin">Admin Panel</a>
+                            <% } %>
                             <hr style="margin: 0; border-color: rgba(162, 191, 206, 0.2);">
                             <a class="custom-dropdown-item" href="/logout" style="color: #cc0000;">Sign Out</a>
                         </div>
