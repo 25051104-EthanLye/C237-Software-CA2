@@ -140,11 +140,12 @@ app.post('/register', validateRegistration, (req, res) => {
 
 // 4. LOGIN POST ROUTE
 app.post('/login', (req, res) => {
-    const { username, password } = req.body;
+    const { username, password, redirectUrl } = req.body;
+    const targetUrl = redirectUrl || '/'; // Default to home if something goes wrong
     
     if (!username || !password) {
         req.flash('error', 'Please fill in both username and password.');
-        return req.session.save(() => res.redirect('/')); 
+        return req.session.save(() => res.redirect(targetUrl)); 
     }
     
     const sql = 'SELECT * FROM users WHERE username = ? AND password = SHA1(?)';
@@ -152,17 +153,11 @@ app.post('/login', (req, res) => {
         if (err) throw err;
         
         if (results.length > 0) {
-            // ARVIN: block banned accounts from logging in
-            if (results[0].account_status === 'banned') {
-                req.flash('error', 'Your account has been banned. Please contact support.');
-                return req.session.save(() => res.redirect('/'));
-            }
-
             req.session.user = results[0]; 
-            req.session.save(() => res.redirect('/')); 
+            req.session.save(() => res.redirect(targetUrl)); 
         } else {
             req.flash('error', 'Incorrect username or password. Please try again.');
-            req.session.save(() => res.redirect('/')); 
+            req.session.save(() => res.redirect(targetUrl)); 
         }
     });
 });
@@ -256,6 +251,45 @@ app.post('/profile/delete-picture', isAuthenticated, (req, res) => {
         req.session.user.profile_picture = null; 
         req.flash('success', 'Profile picture removed.');
         res.redirect('/profile');
+    });
+});
+
+// --- NEW: GLOBAL SEARCH ROUTE ---
+app.get('/search', (req, res) => {
+    const type = req.query.type || 'flight';
+    const destination = req.query.to || ''; // What the user searched for
+    
+    // Query 1: Find matching flights
+    let flightSql = 'SELECT * FROM flights WHERE 1=1';
+    let flightParams = [];
+    if (destination) {
+        flightSql += ' AND destination LIKE ?';
+        flightParams.push(`%${destination}%`);
+    }
+
+    // Query 2: Find matching hotels
+    let hotelSql = 'SELECT * FROM hotels WHERE 1=1';
+    let hotelParams = [];
+    if (destination) {
+        hotelSql += ' AND location LIKE ?';
+        hotelParams.push(`%${destination}%`);
+    }
+
+    // Execute both queries simultaneously
+    db.query(flightSql, flightParams, (err, flights) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+        
+        db.query(hotelSql, hotelParams, (err, hotels) => {
+            if (err) { console.log(err); return res.send("Database Error"); }
+            
+            // Send all the data to our new Search Results page!
+            res.render('searchResults', {
+                searchType: type,
+                searchDestination: destination || 'All Destinations',
+                flights: flights,
+                hotels: hotels
+            });
+        });
     });
 });
 // ------------------------------------------------------- Ethan's Path end

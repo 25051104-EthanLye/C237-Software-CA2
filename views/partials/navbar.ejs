@@ -9,6 +9,18 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
 <style>
+    /* --- GLOBALLY ENFORCED VARIABLES --- 
+       Placing this here ensures the colors load on EVERY page the navbar is on,
+       preventing the black text and transparent modal glitches! */
+    :root {
+        --white: #FFFFFF;
+        --peach: #E2C1AA;
+        --teal: #99BDBC;
+        --blue: #A2BFCE;
+        --dark-text: #2C3E50;
+        --light-bg: #F8F9FA;
+    }
+
     /* Profile Button Styling */
     .profile-btn {
         display: flex; align-items: center; gap: 12px;
@@ -22,14 +34,18 @@
 
     /* Customizing Bootstrap Nav Links */
     .nav-link-custom {
-        color: #99BDBC !important; text-decoration: none; font-weight: 800; font-size: 16px; transition: color 0.2s;
+        color: var(--teal) !important; text-decoration: none; font-weight: 800; font-size: 16px; transition: color 0.2s;
     }
     .nav-link-custom:hover { color: var(--dark-text) !important; } 
 
-    /* --- PURE CSS HOVER DROPDOWN (Immune to JS bugs) --- */
+    /* Navbar Brand text enforcement */
+    .navbar-brand-custom {
+        font-size: 28px !important; font-weight: 800 !important; color: var(--teal) !important;
+    }
+
+    /* --- PURE CSS HOVER DROPDOWN --- */
     .profile-dropdown-wrapper { position: relative; }
     
-    /* Invisible bridge so the menu doesn't close when moving the mouse down */
     .profile-dropdown-wrapper::after {
         content: ""; position: absolute; bottom: -15px; left: 0; width: 100%; height: 15px; background: transparent;
     }
@@ -41,7 +57,6 @@
         z-index: 9999; border: 1px solid rgba(162, 191, 206, 0.2);
     }
 
-    /* Opens the menu on hover instead of click */
     .profile-dropdown-wrapper:hover .custom-dropdown-menu { 
         display: block; animation: dropFade 0.2s ease-out forwards; 
     }
@@ -70,13 +85,19 @@
 
     .close-btn { position: absolute; top: 15px; right: 20px; font-size: 28px; font-weight: 800; color: var(--blue); cursor: pointer; transition: color 0.3s; }
     .close-btn:hover { color: var(--teal); }
+    
+    /* Login Modal Specific Buttons inside Navbar CSS */
+    .btn-login-modal {
+        width: 100%; padding: 14px; font-size: 18px; border-radius: 30px; border: none; cursor: pointer; background-color: var(--peach); color: var(--white); font-weight: 800; transition: all 0.3s;
+    }
+    .btn-login-modal:hover { background-color: #d1b099; }
 </style>
 
-<!-- Main Navigation Bar (Added z-index: 1050 to override any map banners) -->
-<nav class="navbar navbar-expand-lg bg-white sticky-top py-3 px-3 px-lg-5" style="box-shadow: 0 4px 15px rgba(162, 191, 206, 0.2); z-index: 1050;">
+<!-- Main Navigation Bar -->
+<nav class="navbar navbar-expand-lg bg-white sticky-top py-3 px-3 px-lg-5" style="box-shadow: 0 4px 15px rgba(162, 191, 206, 0.2); z-index: 1050; width: 100%;">
     <div class="container-fluid p-0">
         
-        <a class="navbar-brand" href="/" style="font-size: 28px; font-weight: 800; color: var(--teal);">VividVoyage</a>
+        <a class="navbar-brand navbar-brand-custom" href="/">VividVoyage</a>
         
         <!-- Mobile Toggle Button -->
         <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#vividNav">
@@ -96,7 +117,6 @@
             <!-- Right side Auth -->
             <div class="d-flex align-items-center justify-content-center gap-3">
                 <% if (activeUser) { %>
-                    <!-- Replaced Bootstrap JS Dropdown with Pure CSS Dropdown -->
                     <div class="profile-dropdown-wrapper">
                         <div class="profile-btn">
                             
@@ -113,7 +133,6 @@
                         <!-- Hover Menu Content -->
                         <div class="custom-dropdown-menu">
                             <a class="custom-dropdown-item" href="/profile">Profile Overview</a>
-                            <!-- ARVIN: Admin Panel link, only shown to admin-role accounts -->
                             <% if (activeUser.role === 'admin') { %>
                                 <a class="custom-dropdown-item" href="/admin">Admin Panel</a>
                             <% } %>
@@ -123,8 +142,8 @@
                     </div>
 
                 <% } else { %>
-                    <button onclick="openLoginModal()" class="btn" style="background: rgba(255,255,255,0.9); color: var(--teal); border: 2px solid var(--teal); padding: 10px 25px; border-radius: 30px; font-weight: 800; cursor: pointer;">Sign In</button>
-                    <a href="/register" class="btn btn-register" style="padding: 12px 25px; border-radius: 30px; text-decoration: none; font-weight: 800;">Register Now</a>
+                    <button onclick="openLoginModal()" style="background: rgba(255,255,255,0.9); color: var(--teal); border: 2px solid var(--teal); padding: 10px 25px; border-radius: 30px; font-weight: 800; cursor: pointer;">Sign In</button>
+                    <a href="/register" style="background-color: var(--peach); color: var(--white); padding: 12px 25px; border-radius: 30px; text-decoration: none; font-weight: 800; border: none; box-shadow: 0 4px 15px rgba(226, 193, 170, 0.5);">Register Now</a>
                 <% } %>
             </div>
 
@@ -152,17 +171,20 @@
         <% } %>
 
         <form action="/login" method="POST" style="text-align: left;">
+            <!-- NEW: Hidden URL tracker. This remembers what page the user clicked "Sign In" from! -->
+            <input type="hidden" name="redirectUrl" id="loginRedirectUrl">
+
             <div style="margin-bottom: 20px;">
                 <label style="display: block; font-size: 14px; color: var(--teal); font-weight: 800; margin-bottom: 8px; text-transform: uppercase;">Username</label>
-                <input type="text" name="username" placeholder="Enter your username" required style="width: 100%; padding: 14px; border: 2px solid var(--blue); border-radius: 12px; font-size: 16px; outline: none; color: var(--dark-text);">
+                <input type="text" name="username" placeholder="Enter your username" required style="width: 100%; padding: 14px; border: 2px solid var(--blue); border-radius: 12px; font-size: 16px; outline: none; color: var(--dark-text); background-color: var(--white);">
             </div>
             
             <div style="margin-bottom: 25px;">
                 <label style="display: block; font-size: 14px; color: var(--teal); font-weight: 800; margin-bottom: 8px; text-transform: uppercase;">Password</label>
-                <input type="password" name="password" placeholder="Enter your password" required style="width: 100%; padding: 14px; border: 2px solid var(--blue); border-radius: 12px; font-size: 16px; outline: none; color: var(--dark-text);">
+                <input type="password" name="password" placeholder="Enter your password" required style="width: 100%; padding: 14px; border: 2px solid var(--blue); border-radius: 12px; font-size: 16px; outline: none; color: var(--dark-text); background-color: var(--white);">
             </div>
             
-            <button type="submit" class="btn btn-register" style="width: 100%; padding: 14px; font-size: 18px; border-radius: 30px; border: none; cursor: pointer; background-color: var(--peach); color: white; font-weight: 800;">Sign In</button>
+            <button type="submit" class="btn-login-modal">Sign In</button>
         </form>
     </div>
 </div>
@@ -174,10 +196,22 @@
 <script>
     document.addEventListener('DOMContentLoaded', () => {
         const loginModalElement = document.getElementById('loginModal');
+        const redirectInput = document.getElementById('loginRedirectUrl');
 
         // Show/Hide Login
-        window.openLoginModal = function() { if (loginModalElement) loginModalElement.style.display = 'flex'; };
-        window.closeLoginModal = function() { if (loginModalElement) loginModalElement.style.display = 'none'; };
+        window.openLoginModal = function() { 
+            if (loginModalElement) {
+                // Captures the current page URL and query parameters automatically
+                if (redirectInput) {
+                    redirectInput.value = window.location.pathname + window.location.search;
+                }
+                loginModalElement.style.display = 'flex'; 
+            }
+        };
+
+        window.closeLoginModal = function() { 
+            if (loginModalElement) loginModalElement.style.display = 'none'; 
+        };
 
         // Click off to close
         window.onclick = function(event) {
