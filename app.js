@@ -558,6 +558,118 @@ app.post('/bookings/:id/cancel', isAuthenticated, (req, res) => {
 
 //--------------------------------------------------------Shao Feng's Path end
 
+// ------------------------------------------------------- Darrence's Path start
+// --- MEMBER 3: HOTEL STAYS (hotel_reservations) --- //
+// Mirrors Shao Feng's flight CRUD, swapped onto the hotels / hotel_reservations tables.
+
+// H1. BROWSE HOTELS (Read) — with optional ?search= filter
+app.get('/hotels', (req, res) => {
+    const search = req.query.search || '';
+    const sql = `SELECT * FROM hotels
+                 WHERE name LIKE CONCAT('%', ?, '%') OR location LIKE CONCAT('%', ?, '%')
+                 ORDER BY price_per_night ASC`;
+    db.query(sql, [search, search], (err, results) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+        res.render('hotels', { hotels: results, search: search });
+    });
+});
+
+// H2. BOOK ROOM — SHOW FORM (Create)
+app.get('/hotels/book/:hotelId', isAuthenticated, (req, res) => {
+    db.query('SELECT * FROM hotels WHERE id = ?', [req.params.hotelId], (err, results) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+        if (results.length === 0) return res.send("Hotel not found");
+        res.render('bookHotel', { hotel: results[0], errors: req.flash('error') });
+    });
+});
+
+// H3. BOOK ROOM — INSERT (Create)  [Enhancement 1: validation + no double-booking]
+app.post('/hotels/book/:hotelId', isAuthenticated, (req, res) => {
+    const hotelId = req.params.hotelId;
+    const { check_in_date, checkout_date, room_type } = req.body;
+
+    if (!check_in_date || !checkout_date || !room_type) {
+        req.flash('error', 'Please fill in all fields.');
+        return res.redirect('/hotels/book/' + hotelId);
+    }
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    if (new Date(check_in_date) < today) {
+        req.flash('error', 'Check-in date cannot be in the past.');
+        return res.redirect('/hotels/book/' + hotelId);
+    }
+    if (new Date(checkout_date) <= new Date(check_in_date)) {
+        req.flash('error', 'Checkout must be after check-in.');
+        return res.redirect('/hotels/book/' + hotelId);
+    }
+
+    // interval overlap: an existing booking clashes if it starts before our checkout AND ends after our check-in
+    const clashSql = `SELECT COUNT(*) AS clashes FROM hotel_reservations
+                      WHERE hotel_id = ? AND room_type = ?
+                        AND check_in_date < ? AND checkout_date > ?`;
+    db.query(clashSql, [hotelId, room_type, checkout_date, check_in_date], (err, rows) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+        if (rows[0].clashes > 0) {
+            req.flash('error', 'Sorry, that room type is already booked for those dates.');
+            return res.redirect('/hotels/book/' + hotelId);
+        }
+        const insertSql = `INSERT INTO hotel_reservations
+                           (user_id, hotel_id, check_in_date, checkout_date, room_type)
+                           VALUES (?, ?, ?, ?, ?)`;
+        db.query(insertSql, [req.session.user.id, hotelId, check_in_date, checkout_date, room_type], (err2) => {
+            if (err2) { console.log(err2); return res.send("Database Error"); }
+            req.flash('success', 'Room booked successfully!');
+            res.redirect('/reservations');
+        });
+    });
+});
+
+// H4. VIEW RESERVATIONS (Read) — joined with hotels for name/location/price
+app.get('/reservations', isAuthenticated, (req, res) => {
+    const sql = `SELECT hotel_reservations.*, hotels.name, hotels.location, hotels.price_per_night
+                 FROM hotel_reservations
+                 JOIN hotels ON hotel_reservations.hotel_id = hotels.id
+                 WHERE hotel_reservations.user_id = ?
+                 ORDER BY hotel_reservations.check_in_date ASC`;
+    db.query(sql, [req.session.user.id], (err, results) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+        res.render('reservations', { reservations: results });
+    });
+});
+
+// H5. CHANGE ROOM — SHOW FORM (Update)
+app.get('/reservations/:id/room', isAuthenticated, (req, res) => {
+    const sql = `SELECT hotel_reservations.*, hotels.name, hotels.location
+                 FROM hotel_reservations
+                 JOIN hotels ON hotel_reservations.hotel_id = hotels.id
+                 WHERE hotel_reservations.id = ? AND hotel_reservations.user_id = ?`;
+    db.query(sql, [req.params.id, req.session.user.id], (err, results) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+        if (results.length === 0) return res.send("Reservation not found");
+        res.render('changeRoom', { reservation: results[0] });
+    });
+});
+
+// H6. CHANGE ROOM — UPDATE (Update)
+app.post('/reservations/:id/room', isAuthenticated, (req, res) => {
+    const sql = `UPDATE hotel_reservations SET room_type = ? WHERE id = ? AND user_id = ?`;
+    db.query(sql, [req.body.room_type, req.params.id, req.session.user.id], (err) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+        req.flash('success', 'Room type updated successfully!');
+        res.redirect('/reservations');
+    });
+});
+
+// H7. CANCEL RESERVATION (Delete)
+app.post('/reservations/:id/cancel', isAuthenticated, (req, res) => {
+    const sql = `DELETE FROM hotel_reservations WHERE id = ? AND user_id = ?`;
+    db.query(sql, [req.params.id, req.session.user.id], (err) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+        req.flash('success', 'Reservation cancelled.');
+        res.redirect('/reservations');
+    });
+});
+// ------------------------------------------------------- Darrence's Path end
+
 // ------------------------------------------------------- Rui Qi's Path start
 // 6. ITINERARY ROUTES
 app.get('/trips', isAuthenticated, (req,res)=>{

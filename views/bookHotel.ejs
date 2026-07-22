@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Room | VividVoyage</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --white: #FFFFFF; --peach: #E2C1AA; --teal: #99BDBC;
+            --blue: #A2BFCE; --dark-text: #2C3E50; --light-bg: #F8F9FA;
+            --teal-deep: #5f8f8e;
+        }
+        * { font-family: 'Nunito', sans-serif; }
+        body { background: #F8F5F1; color: var(--dark-text); }
+        .book-wrap { max-width: 560px; margin: 130px auto 60px; padding: 0 18px; }
+        .book-card {
+            background: var(--white); border-radius: 20px; overflow: hidden;
+            box-shadow: 0 14px 40px rgba(44,62,80,.10); border: 1px solid #eee7df;
+        }
+        .book-head {
+            background: linear-gradient(135deg, var(--teal), var(--teal-deep));
+            color: #fff; padding: 26px 28px;
+        }
+        .book-head h3 { font-weight: 800; margin: 0; }
+        .book-head p { margin: 4px 0 0; opacity: .9; font-weight: 600; }
+        .book-body { padding: 28px; }
+        .form-label { font-weight: 800; font-size: .88rem; color: var(--teal-deep); }
+        .form-control, .form-select {
+            border: 1.5px solid var(--blue); border-radius: 12px; padding: 12px 14px; font-weight: 600;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--teal); box-shadow: 0 0 0 3px rgba(153,189,188,.3);
+        }
+        .summary {
+            background: rgba(226,193,170,.25); border-radius: 14px; padding: 16px 18px; margin: 6px 0 22px;
+            font-weight: 700; color: #7a4a30; display: flex; justify-content: space-between; align-items: center;
+        }
+        .summary .total { font-size: 1.35rem; font-weight: 800; }
+        .btn-teal {
+            background: var(--teal); color: #143b3a; font-weight: 800; border: none;
+            border-radius: 999px; padding: 13px; width: 100%; transition: all .2s;
+        }
+        .btn-teal:hover { background: var(--teal-deep); color: #fff; }
+        .alert-soft { background:#ffe6e6; color:#b3261e; border-radius:12px; padding:12px 16px; font-weight:700; }
+    </style>
+</head>
+<body>
+
+<%- include('partials/navbar') %>
+
+<div class="book-wrap">
+    <div class="book-card">
+        <div class="book-head">
+            <h3><%= hotel.name %></h3>
+            <p>📍 <%= hotel.location %> &nbsp;·&nbsp; $<%= Number(hotel.price_per_night).toFixed(2) %> / night</p>
+        </div>
+        <div class="book-body">
+
+            <% if (errors && errors.length > 0) { %>
+                <div class="alert-soft mb-3"><% errors.forEach(e => { %><div><%= e %></div><% }) %></div>
+            <% } %>
+
+            <form action="/hotels/book/<%= hotel.id %>" method="POST">
+                <div class="row">
+                    <div class="col-6 mb-3">
+                        <label class="form-label">Check-in</label>
+                        <input type="date" name="check_in_date" id="checkIn" class="form-control" required>
+                    </div>
+                    <div class="col-6 mb-3">
+                        <label class="form-label">Checkout</label>
+                        <input type="date" name="checkout_date" id="checkOut" class="form-control" required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Room type</label>
+                    <select name="room_type" class="form-select" required>
+                        <option value="">-- Select --</option>
+                        <option value="Standard">Standard</option>
+                        <option value="Deluxe">Deluxe</option>
+                        <option value="Suite">Suite</option>
+                        <option value="Family">Family</option>
+                    </select>
+                </div>
+
+                <!-- live cost preview (enhancement): updates as the dates change -->
+                <div class="summary">
+                    <span id="nightsLabel">Select your dates</span>
+                    <span class="total" id="totalLabel">$0.00</span>
+                </div>
+
+                <button type="submit" class="btn-teal">Confirm booking</button>
+            </form>
+
+            <div class="text-center mt-3">
+                <a href="/hotels" style="color:var(--teal-deep); font-weight:700; text-decoration:none;">&larr; Back to hotels</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Pull the nightly rate from the server-rendered value so the maths stays in sync with the DB.
+    const rate = <%= Number(hotel.price_per_night) %>;
+    const checkIn = document.getElementById('checkIn');
+    const checkOut = document.getElementById('checkOut');
+    const nightsLabel = document.getElementById('nightsLabel');
+    const totalLabel = document.getElementById('totalLabel');
+
+    // Stop past dates being picked in the UI (server re-checks this too).
+    const today = new Date().toISOString().split('T')[0];
+    checkIn.min = today;
+    checkOut.min = today;
+
+    function recalc() {
+        const inD = new Date(checkIn.value);
+        const outD = new Date(checkOut.value);
+        if (checkIn.value && checkOut.value && outD > inD) {
+            const nights = Math.round((outD - inD) / (1000 * 60 * 60 * 24));
+            nightsLabel.textContent = nights + (nights === 1 ? ' night' : ' nights') + ' × $' + rate.toFixed(2);
+            totalLabel.textContent = '$' + (nights * rate).toFixed(2);
+        } else {
+            nightsLabel.textContent = 'Select your dates';
+            totalLabel.textContent = '$0.00';
+        }
+    }
+    checkIn.addEventListener('change', () => { checkOut.min = checkIn.value || today; recalc(); });
+    checkOut.addEventListener('change', recalc);
+</script>
+
+</body>
+</html>
