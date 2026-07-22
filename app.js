@@ -420,30 +420,50 @@ app.get('/flights/book/:flightId', isAuthenticated, (req, res) => {
 });
 
 // 9. BOOK FLIGHT - INSERT (Create)
+// 9. BOOK FLIGHT - INSERT (Create)
 app.post('/flights/book/:flightId', isAuthenticated, (req, res) => {
 
     const flightId = req.params.flightId;
     const { seat_preference } = req.body;
 
-    if (!seat_preference) {
-        req.flash('error', 'Please select a seat preference.');
+    const allowedSeats = ['Window', 'Middle', 'Aisle'];
+
+    if (!seat_preference || !allowedSeats.includes(seat_preference)) {
+        req.flash('error', 'Please select a valid seat preference.');
         return res.redirect('/flights/book/' + flightId);
     }
 
-    const sql = `
-        INSERT INTO flight_bookings (user_id, flight_id, seat_preference)
-        VALUES (?, ?, ?)
-    `;
+    // Confirm the flight actually exists before inserting a booking for it
+    const checkSql = `SELECT id FROM flights WHERE id = ?`;
 
-    db.query(sql, [req.session.user.id, flightId, seat_preference], (err) => {
+    db.query(checkSql, [flightId], (err, results) => {
 
         if (err) {
             console.log(err);
             return res.send("Database Error");
         }
 
-        req.flash('success', 'Flight booked successfully!');
-        res.redirect('/bookings');
+        if (results.length === 0) {
+            req.flash('error', 'That flight no longer exists.');
+            return res.redirect('/flights');
+        }
+
+        const sql = `
+            INSERT INTO flight_bookings (user_id, flight_id, seat_preference)
+            VALUES (?, ?, ?)
+        `;
+
+        db.query(sql, [req.session.user.id, flightId, seat_preference], (err) => {
+
+            if (err) {
+                console.log(err);
+                return res.send("Database Error");
+            }
+
+            req.flash('success', 'Flight booked successfully!');
+            res.redirect('/bookings');
+
+        });
 
     });
 
