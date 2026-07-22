@@ -152,6 +152,12 @@ app.post('/login', (req, res) => {
         if (err) throw err;
         
         if (results.length > 0) {
+            // ARVIN: block banned accounts from logging in
+            if (results[0].account_status === 'banned') {
+                req.flash('error', 'Your account has been banned. Please contact support.');
+                return req.session.save(() => res.redirect('/'));
+            }
+
             req.session.user = results[0]; 
             req.session.save(() => res.redirect('/')); 
         } else {
@@ -1000,7 +1006,7 @@ app.post('/reviews/delete/:id', isAuthenticated, (req, res) => {
 
 // ADMIN DASHBOARD (hub linking to hotels / flights / reviews)
 app.get('/admin', isAdmin, (req, res) => {
-    res.render('admin/dashboard', { user: req.session.user });
+    res.render('admin/ADMINdashboard', { user: req.session.user });
 });
 
 // ----- HOTEL INVENTORY -----
@@ -1012,7 +1018,7 @@ app.get('/admin/hotels', isAdmin, (req, res) => {
     db.query(sql, (err, results) => {
         if (err) { console.log(err); return res.send("Database Error"); }
 
-        res.render('admin/hotels', {
+        res.render('admin/ADMINhotels', {
             user: req.session.user,
             hotels: results,
             messages: req.flash('success'),
@@ -1052,6 +1058,60 @@ app.post('/admin/hotels/delete/:id', isAdmin, (req, res) => {
     });
 });
 
+app.get('/admin/flights/edit/:id', isAdmin, (req, res) => {
+    const sql = 'SELECT * FROM flights WHERE id = ?';
+
+    db.query(sql, [req.params.id], (err, results) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+        if (results.length === 0) { return res.send("Flight not found"); }
+
+        res.render('admin/ADMINeditFlight', { flight: results[0] });
+    });
+});
+
+app.post('/admin/flights/edit/:id', isAdmin, (req, res) => {
+    const { flight_number, destination, departure_date, departure_time, duration, price } = req.body;
+
+    const sql = `
+        UPDATE flights
+        SET flight_number = ?, destination = ?, departure_date = ?, departure_time = ?, duration = ?, price = ?
+        WHERE id = ?
+    `;
+
+    db.query(sql, [flight_number, destination, departure_date, departure_time, duration, price, req.params.id], (err) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+
+        req.flash('success', `Flight ${flight_number} updated.`);
+        res.redirect('/admin/flights');
+    });
+});
+
+// Arvin - EDIT (Show Form): pre-fill the edit page with this hotel's current data
+app.get('/admin/hotels/edit/:id', isAdmin, (req, res) => {
+    const sql = 'SELECT * FROM hotels WHERE id = ?';
+
+    db.query(sql, [req.params.id], (err, results) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+        if (results.length === 0) { return res.send("Hotel not found"); }
+
+        res.render('admin/ADMINeditHotel', { hotel: results[0] });
+    });
+});
+
+// EDIT (Save): update the hotel with the submitted changes
+app.post('/admin/hotels/edit/:id', isAdmin, (req, res) => {
+    const { name, location, price_per_night } = req.body;
+
+    const sql = 'UPDATE hotels SET name = ?, location = ?, price_per_night = ? WHERE id = ?';
+
+    db.query(sql, [name, location, price_per_night, req.params.id], (err) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+
+        req.flash('success', `Hotel "${name}" updated.`);
+        res.redirect('/admin/hotels');
+    });
+});
+
 // ----- FLIGHT INVENTORY -----
 
 // VIEW ALL: list every flight route currently in the system
@@ -1061,7 +1121,7 @@ app.get('/admin/flights', isAdmin, (req, res) => {
     db.query(sql, (err, results) => {
         if (err) { console.log(err); return res.send("Database Error"); }
 
-        res.render('admin/flights', {
+        res.render('admin/ADMINflights', {
             user: req.session.user,
             flights: results,
             messages: req.flash('success'),
@@ -1120,7 +1180,7 @@ app.get('/admin/reviews', isAdmin, (req, res) => {
     db.query(sql, (err, results) => {
         if (err) { console.log(err); return res.send("Database Error"); }
 
-        res.render('admin/reviews', {
+        res.render('admin/ADMINreviews', {
             user: req.session.user,
             reviews: results,
             messages: req.flash('success'),
@@ -1138,6 +1198,48 @@ app.post('/admin/reviews/delete/:id', isAdmin, (req, res) => {
 
         req.flash('success', 'Review removed.');
         res.redirect('/admin/reviews');
+    });
+});
+
+// ----- USER MANAGEMENT (Ban/Unban) -----
+
+// VIEW ALL: list every registered user
+app.get('/admin/users', isAdmin, (req, res) => {
+    const sql = 'SELECT * FROM users ORDER BY id DESC';
+
+    db.query(sql, (err, results) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+
+        res.render('admin/ADMINban', {
+            user: req.session.user,
+            users: results,
+            messages: req.flash('success'),
+            errors: req.flash('error')
+        });
+    });
+});
+
+// BAN: block a user from logging in
+app.post('/admin/users/ban/:id', isAdmin, (req, res) => {
+    const sql = "UPDATE users SET account_status = 'banned' WHERE id = ?";
+
+    db.query(sql, [req.params.id], (err) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+
+        req.flash('success', 'User has been banned.');
+        res.redirect('/admin/users');
+    });
+});
+
+// UNBAN: restore a user's access
+app.post('/admin/users/unban/:id', isAdmin, (req, res) => {
+    const sql = "UPDATE users SET account_status = 'active' WHERE id = ?";
+
+    db.query(sql, [req.params.id], (err) => {
+        if (err) { console.log(err); return res.send("Database Error"); }
+
+        req.flash('success', 'User has been unbanned.');
+        res.redirect('/admin/users');
     });
 });
 
