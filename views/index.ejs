@@ -183,6 +183,15 @@
             outline: none;
         }
 
+        /* Autocomplete suggestions box for homepage search */
+        .suggestions-box {
+            position: absolute; background: #fff; width: 100%; max-width: 420px; z-index: 999;
+            border: 1px solid rgba(162,191,206,0.25); border-radius: 8px; margin-top: 6px; box-shadow: 0 8px 25px rgba(0,0,0,0.06);
+            display: none; max-height: 240px; overflow: auto;
+        }
+        .suggestion-item { padding: 10px 14px; cursor: pointer; font-weight:600; }
+        .suggestion-item:hover { background: #f4f7fb; }
+
         .search-btn {
             padding: 14px 35px;
             font-size: 18px;
@@ -314,9 +323,11 @@
             </div>
             
             <form class="search-form" action="/search" method="GET">
-                <div class="input-group">
+                <div class="input-group" style="position:relative;">
                     <label>Where to?</label>
-                    <input type="text" name="destination" placeholder="City or Airport..." required>
+                    <input type="text" name="destination" id="destinationInput" placeholder="City or Airport..." autocomplete="off" required>
+
+                    <div id="homeSuggestions" class="suggestions-box" aria-hidden="true"></div>
                 </div>
                 <div class="input-group">
                     <label>Departure Date</label>
@@ -324,12 +335,21 @@
                 </div>
                 <div class="input-group">
                     <label>Travelers</label>
-                    <select name="guests">
-                        <option>1 Adult, 0 Children</option>
-                        <option>2 Adults, 0 Children</option>
-                        <option>2 Adults, 1 Child</option>
-                        <option>2 Adults, 2 Children</option>
-                    </select>
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <div style="flex:1;">
+                            <select name="adults" style="width:100%;">
+                                <option value="1">1 Adult</option>
+                                <option value="2">2 Adults</option>
+                            </select>
+                        </div>
+                        <div style="width:140px;">
+                            <select name="children" style="width:100%;">
+                                <option value="0">0 Children</option>
+                                <option value="1">1 Child</option>
+                                <option value="2">2 Children</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
                 <button type="submit" class="btn btn-register search-btn">Search</button>
             </form>
@@ -474,6 +494,42 @@
             // In the future, this function can be expanded to change the form inputs 
             // depending on whether the user is searching for flights or hotels.
         }
+
+        // 3. HOMEPAGE AUTOCOMPLETE (calls /flights/search-cities?q=...)
+        (function(){
+            const input = document.getElementById('destinationInput');
+            const box = document.getElementById('homeSuggestions');
+            let timeout = null;
+
+            function render(items){
+                box.innerHTML = '';
+                if(!items || items.length === 0){ box.style.display = 'none'; box.setAttribute('aria-hidden','true'); return; }
+                items.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'suggestion-item';
+                    div.textContent = item;
+                    div.addEventListener('click', ()=>{ input.value = item; box.style.display='none'; box.setAttribute('aria-hidden','true'); });
+                    box.appendChild(div);
+                });
+                box.style.display = 'block'; box.setAttribute('aria-hidden','false');
+            }
+
+            input.addEventListener('input', (e)=>{
+                const q = e.target.value.trim();
+                clearTimeout(timeout);
+                if(q.length < 1){ render([]); return; }
+                timeout = setTimeout(()=>{
+                    fetch('/flights/search-cities?q=' + encodeURIComponent(q))
+                        .then(r=>r.json())
+                        .then(data=> render(data))
+                        .catch(()=> render([]));
+                }, 220);
+            });
+
+            document.addEventListener('click', (ev)=>{
+                if(!box.contains(ev.target) && ev.target !== input){ box.style.display='none'; box.setAttribute('aria-hidden','true'); }
+            });
+        })();
     </script>
 </body>
 </html>

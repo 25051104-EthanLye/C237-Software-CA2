@@ -23,6 +23,7 @@ db.connect((err) => {
     console.log('Connected to database');
 });
 
+
 app.use(express.urlencoded({ extended: false }));
 app.use(express.static('public'));
 
@@ -327,7 +328,7 @@ app.get('/flights/book/:flightId', isAuthenticated, (req, res) => {
             return res.send("Flight not found");
         }
 
-        res.render('bookFlight', {
+        res.render('bookFlights', {
             flight: results[0]
         });
 
@@ -610,6 +611,53 @@ app.post('/trip/delete/:id', isAuthenticated, (req,res)=>{
 
     });
 
+});
+
+// --- REVIEWS ROUTES ---
+app.get('/reviews', (req, res) => {
+    const sql = 'SELECT * FROM reviews ORDER BY date DESC';
+    db.query(sql, (err, results) => {
+        if (err) {
+            console.log(err);
+            return res.send("Database Error");
+        }
+        res.render('reviews', { reviews: results });
+    });
+});
+
+app.post('/reviews/add', isAuthenticated, (req, res) => {
+    const { name, destination, rating, text } = req.body;
+    const sql = 'INSERT INTO reviews (user_id, name, destination, rating, text) VALUES (?, ?, ?, ?, ?)';
+    db.query(sql, [req.session.user.id, name, destination, rating, text], (err) => {
+        if (err) {
+            console.log(err);
+            return res.send("Database Error");
+        }
+        res.redirect('/reviews');
+    });
+});
+
+app.post('/reviews/delete/:id', isAuthenticated, (req, res) => {
+    const sql = 'DELETE FROM reviews WHERE id = ? AND user_id = ?';
+    db.query(sql, [req.params.id, req.session.user.id], (err) => {
+        if (err) {
+            console.log(err);
+            return res.send("Database Error");
+        }
+        res.redirect('/reviews');
+    });
+});
+
+app.post('/reviews/edit/:id', isAuthenticated, (req, res) => {
+    const { name, destination, rating, text } = req.body;
+    const sql = 'UPDATE reviews SET name = ?, destination = ?, rating = ?, text = ? WHERE id = ? AND user_id = ?';
+    db.query(sql, [name, destination, rating, text, req.params.id, req.session.user.id], (err) => {
+        if (err) {
+            console.log(err);
+            return res.send("Database Error");
+        }
+        res.redirect('/reviews');
+    });
 });
 
 // ------------------------------------------------------- Rui Qi's Path end
