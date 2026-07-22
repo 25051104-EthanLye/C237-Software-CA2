@@ -24,7 +24,8 @@
         </div>
         <div class="mb-3">
             <strong>Date:</strong> <%= new Date(flight.departure_date).toLocaleDateString() %>
-            &nbsp;|&nbsp; <strong>Time:</strong> <%= flight.departure_time %>
+            &nbsp;|&nbsp; <strong>Departure:</strong> <%= flight.departure_time || 'TBD' %>
+            &nbsp;→&nbsp; <strong>Arrival:</strong> <%= flight.arrival_time || 'TBD' %>
         </div>
         <div class="mb-4">
             <strong>Price:</strong> $<%= Number(flight.price).toFixed(2) %>

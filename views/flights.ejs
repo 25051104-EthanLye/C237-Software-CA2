@@ -46,7 +46,7 @@
     <% } %>
 
     <% flights.forEach(flight => { %>
-        <div class="col-xl-4 col-lg-6 mb-4 flight-card">
+        <div class="col-xl-4 col-lg-6 mb-4 flight-card" data-departure="<%= flight.departure_time %>" data-duration="<%= flight.duration %>" data-arrival="<%= flight.arrival_time %>">
             <div class="card h-100">
                 <div class="card-body p-4">
                     <div class="d-flex justify-content-between align-items-start">
@@ -58,7 +58,11 @@
                     </div>
                     <hr>
                     <div class="mb-2"><strong>Date:</strong> <%= new Date(flight.departure_date).toLocaleDateString() %></div>
-                    <div class="mb-2"><strong>Time:</strong> <%= flight.departure_time %></div>
+                    <div class="d-flex gap-3 mb-2" style="align-items:center;">
+                        <div><strong>Departure:</strong> <%= flight.departure_time || 'TBD' %></div>
+                        <div style="font-weight:800; color:#6c757d;">→</div>
+                        <div><strong>Arrival:</strong> <span class="arrival-time"><%= flight.arrival_time || 'TBD' %></span></div>
+                    </div>
                     <div class="mb-2"><strong>Duration:</strong> <%= flight.duration %></div>
                     <div class="mb-3" style="font-size:1.4rem; color:#99BDBC; font-weight:800;">
                         $<%= Number(flight.price).toFixed(2) %>
@@ -89,5 +93,46 @@ search.addEventListener("keyup", function(){
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+
+<script>
+// Compute arrival times client-side when DB arrival_time is missing.
+function parseDurationToMinutes(s){
+    if(!s) return 0;
+    s = String(s);
+    let mins = 0;
+    const h = s.match(/(\d+)\s*h/);
+    if(h) mins += Number(h[1]) * 60;
+    const m = s.match(/(\d+)\s*m/);
+    if(m) mins += Number(m[1]);
+    if(mins === 0 && /^\d+$/.test(s)) mins = Number(s);
+    return mins;
+}
+
+function computeArrival(dep, dur){
+    if(!dep) return null;
+    const dh = String(dep).match(/(\d{1,2}):(\d{2})/);
+    if(!dh) return null;
+    const depMins = Number(dh[1]) * 60 + Number(dh[2]);
+    const arrMins = (depMins + parseDurationToMinutes(dur)) % 1440;
+    const ah = String(Math.floor(arrMins / 60)).padStart(2,'0');
+    const am = String(arrMins % 60).padStart(2,'0');
+    return ah + ':' + am;
+}
+
+document.addEventListener('DOMContentLoaded', ()=>{
+    document.querySelectorAll('.flight-card').forEach(card => {
+        const dep = card.dataset.departure;
+        const dur = card.dataset.duration;
+        const arr = card.dataset.arrival;
+        const span = card.querySelector('.arrival-time');
+        if(span && (!arr || arr === 'null' || arr === '')){
+            const computed = computeArrival(dep, dur);
+            if(computed) span.textContent = computed;
+        }
+    });
+});
+</script>
 </body>
 </html>

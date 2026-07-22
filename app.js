@@ -300,9 +300,48 @@ app.get('/search', (req, res) => {
 // 7. BROWSE / SEARCH FLIGHTS
 app.get('/flights', (req, res) => {
 
-    const sql = `SELECT * FROM flights ORDER BY departure_date ASC, departure_time ASC`;
+    // Build a parameterized query based on provided search filters
+    const where = [];
+    const params = [];
 
-    db.query(sql, (err, results) => {
+    if (req.query.destination) {
+        where.push('destination LIKE ?');
+        params.push('%' + req.query.destination + '%');
+    }
+
+    if (req.query.origin) {
+        where.push('origin LIKE ?');
+        params.push('%' + req.query.origin + '%');
+    }
+
+    if (req.query.date) {
+        // Accept either YYYY-MM-DD or DD/MM/YYYY from various clients
+        let qdate = req.query.date;
+        if (qdate.indexOf('/') !== -1) {
+            const parts = qdate.split('/'); // dd/mm/yyyy
+            if (parts.length === 3) {
+                const [dd, mm, yyyy] = parts;
+                qdate = `${yyyy}-${mm.padStart(2,'0')}-${dd.padStart(2,'0')}`;
+            }
+        }
+        // push normalized date
+        where.push('departure_date = ?');
+        params.push(qdate);
+        console.log('Flights filter date:', qdate);
+    }
+
+    if (req.query.direct) {
+        // assume direct is sent as '1' or '0' or 'true'/'false'
+        const val = (req.query.direct === '1' || req.query.direct === 'true') ? 1 : 0;
+        where.push('direct = ?');
+        params.push(val);
+    }
+
+    let sql = 'SELECT * FROM flights';
+    if (where.length) sql += ' WHERE ' + where.join(' AND ');
+    sql += ' ORDER BY departure_date ASC, departure_time ASC';
+
+    db.query(sql, params, (err, results) => {
 
         if (err) {
             console.log(err);
@@ -311,7 +350,8 @@ app.get('/flights', (req, res) => {
 
         res.render('flights', {
             user: req.session.user,
-            flights: results
+            flights: results,
+            filters: req.query || {}
         });
 
     });
@@ -320,8 +360,11 @@ app.get('/flights', (req, res) => {
 
 // 7b. HOMEPAGE SEARCH WIDGET -> redirects into /flights with a destination filter
 app.get('/search', (req, res) => {
-    const { destination } = req.query;
-    res.redirect('/flights' + (destination ? '?destination=' + encodeURIComponent(destination) : ''));
+    const params = new URLSearchParams();
+    ['destination','date','adults','children','travel_class','origin','return_date','direct']
+        .forEach(key => { if (req.query[key]) params.set(key, req.query[key]); });
+    const qs = params.toString();
+    res.redirect('/flights' + (qs ? ('?' + qs) : ''));
 });
 
 // 7c. CITY AUTOCOMPLETE - returns destinations from the flights table matching what's typed
@@ -411,7 +454,7 @@ app.get('/bookings', isAuthenticated, (req, res) => {
 
     const sql = `
         SELECT flight_bookings.*, flights.flight_number, flights.destination,
-               flights.departure_date, flights.departure_time, flights.duration, flights.price
+               flights.departure_date, flights.departure_time, flights.arrival_time, flights.duration, flights.price
         FROM flight_bookings
         JOIN flights ON flight_bookings.flight_id = flights.id
         WHERE flight_bookings.user_id = ?
@@ -440,7 +483,7 @@ app.get('/bookings/:id/seat', isAuthenticated, (req, res) => {
 
     const sql = `
         SELECT flight_bookings.*, flights.flight_number, flights.destination,
-               flights.departure_date, flights.departure_time
+               flights.departure_date, flights.departure_time, flights.arrival_time
         FROM flight_bookings
         JOIN flights ON flight_bookings.flight_id = flights.id
         WHERE flight_bookings.id = ? AND flight_bookings.user_id = ?
