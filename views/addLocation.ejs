@@ -1,123 +1,108 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-
+<title>Add Location</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
-
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 </head>
-
 <body class="bg-light">
-
 <%- include('partials/navbar') %>
 
 <div class="container py-5" style="margin-top:120px;">
-
-<div class="row justify-content-center">
-
-<div class="col-md-7">
-
 <div class="card shadow">
-
-<div class="card-header bg-primary text-white">
-
-<h3>Add Location</h3>
-
-</div>
-
+<div class="card-header bg-primary text-white"><h3>Add Location</h3></div>
 <div class="card-body">
-
 <form action="/trip/<%= trip.id %>/add" method="POST">
 
-<div class="mb-3">
-
 <label class="form-label">Location</label>
-
-<input
-type="text"
-name="location_name"
-class="form-control"
-required>
-
+<div class="input-group mb-2">
+<input id="location_name" name="location_name" class="form-control" required>
+<button class="btn btn-primary" type="button" onclick="searchLocation()">Search</button>
 </div>
+<div id="searchResult" class="mb-3"></div>
 
-<div class="row">
+<div id="map" style="height:350px"></div>
 
-<div class="col-md-6 mb-3">
+<input type="hidden" id="latitude" name="latitude">
+<input type="hidden" id="longitude" name="longitude">
 
-<label class="form-label">Latitude</label>
-
-<input
-type="number"
-step="any"
-name="latitude"
-class="form-control"
-placeholder="e.g. 1.3521">
-
-<div class="form-text">
-Example: 1.3521 (North is positive)
+<h5 class="mt-4">Nearby Attractions</h5>
+<div id="recommendations" class="list-group mb-3">
+<div class="list-group-item text-muted">Search for a location first.</div>
 </div>
-
-</div>
-
-<div class="col-md-6 mb-3">
-
-<label class="form-label">Longitude</label>
-
-<input
-type="number"
-step="any"
-name="longitude"
-class="form-control"
-placeholder="e.g. 103.8198">
-
-<div class="form-text">
-Example: 103.8198 (East is positive)
-</div>
-
-</div>
-
-</div>
-
-<div class="mb-3">
 
 <label class="form-label">Visit Time</label>
-
-<input
-type="datetime-local"
-name="visit_time"
-class="form-control">
-
-</div>
+<input type="datetime-local" name="visit_time" class="form-control mb-3" required>
 
 <div class="d-flex justify-content-between">
-
-<a href="/trip/<%= trip.id %>" class="btn btn-secondary">
-
-Back
-
-</a>
-
-<button
-class="btn btn-primary">
-
-Add Location
-
-</button>
-
+<a href="/trip/<%= trip.id %>" class="btn btn-secondary">Back</a>
+<button class="btn btn-success">Add Location</button>
 </div>
 
 </form>
+</div></div></div>
 
-</div>
+<script>
+const map=L.map('map').setView([1.3521,103.8198],11);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(map);
+let marker=null;
 
-</div>
+async function searchLocation(){
+ const q=document.getElementById('location_name').value.trim();
+ if(!q){alert('Enter a location');return;}
+ document.getElementById('searchResult').textContent='Searching...';
+ const r=await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q='+encodeURIComponent(q));
+ const d=await r.json();
+ if(!d.length){document.getElementById('searchResult').textContent='Location not found.';return;}
+ const lat=parseFloat(d[0].lat), lon=parseFloat(d[0].lon);
+ document.getElementById('location_name').value=d[0].display_name;
+ document.getElementById('latitude').value=lat;
+ document.getElementById('longitude').value=lon;
+ if(marker) map.removeLayer(marker);
+ marker=L.marker([lat,lon]).addTo(map);
+ map.setView([lat,lon],15);
+ document.getElementById('searchResult').innerHTML='✅ Location found';
+ loadNearbyPlaces(lat,lon);
+}
 
-</div>
+async function loadNearbyPlaces(lat,lon){
+ const box=document.getElementById('recommendations');
+ box.innerHTML='<div class="list-group-item">Loading nearby attractions...</div>';
+ const query=`[out:json];
+(
+node(around:2500,${lat},${lon})["tourism"="attraction"];
+node(around:2500,${lat},${lon})["tourism"="museum"];
+node(around:2500,${lat},${lon})["tourism"="viewpoint"];
+node(around:2500,${lat},${lon})["leisure"="park"];
+);
+out body 10;`;
+ try{
+  const r=await fetch('https://overpass-api.de/api/interpreter',{method:'POST',body:query});
+  const data=await r.json();
+  let html='';
+  let count=0;
+  data.elements.forEach(p=>{
+    if(!p.tags||!p.tags.name) return;
+    count++;
+    const safe=JSON.stringify(p.tags.name);
+    html+=`<button type="button" class="list-group-item list-group-item-action" onclick='choosePlace(${safe},${p.lat},${p.lon})'>⭐ ${p.tags.name}</button>`;
+  });
+  if(count===0) html='<div class="list-group-item">No nearby attractions found.</div>';
+  box.innerHTML=html;
+ }catch(e){
+  box.innerHTML='<div class="list-group-item text-danger">Unable to load nearby attractions.</div>';
+ }
+}
 
-</div>
-
-</div>
-
+function choosePlace(name,lat,lon){
+ document.getElementById('location_name').value=name;
+ document.getElementById('latitude').value=lat;
+ document.getElementById('longitude').value=lon;
+ if(marker) map.removeLayer(marker);
+ marker=L.marker([lat,lon]).addTo(map);
+ map.setView([lat,lon],15);
+}
+</script>
 </body>
 </html>

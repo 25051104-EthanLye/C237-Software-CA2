@@ -735,14 +735,30 @@ app.get('/trip/:id/schedule', isAuthenticated, (req, res) => {
 });
 
 app.post('/trip/:id/add', isAuthenticated, (req, res) => {
+
+    console.log("req.body:", req.body);
+
     const tripId = req.params.id;
     const { location_name, latitude, longitude, visit_time } = req.body;
-    const sql = `INSERT INTO itineraries (trip_id, user_id, location_name, latitude, longitude, visit_time) VALUES (?, ?, ?, ?, ?, ?)`;
 
-    db.query(sql, [tripId, req.session.user.id, location_name, latitude, longitude, visit_time], (err) => {
-        if (err) { console.log(err); return res.send("Database Error"); }
-        res.redirect("/trip/" + tripId);
-    });
+    const sql = `
+        INSERT INTO itineraries
+        (trip_id, user_id, location_name, latitude, longitude, visit_time)
+        VALUES (?, ?, ?, ?, ?, ?)
+    `;
+
+    db.query(
+        sql,
+        [tripId, req.session.user.id, location_name, latitude, longitude, visit_time],
+        (err) => {
+            if (err) {
+                console.log(err);
+                return res.send("Database Error");
+            }
+
+            res.redirect("/trip/" + tripId);
+        }
+    );
 });
 
 app.get('/trip/:id/add', isAuthenticated, (req, res) => {

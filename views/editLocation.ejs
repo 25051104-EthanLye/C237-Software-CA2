@@ -29,56 +29,42 @@
 
 <form action="/trip/<%= tripId %>/edit/<%= itinerary.id %>" method="POST">
 
+
 <div class="mb-3">
+    <label class="form-label">Location</label>
 
-<label class="form-label">Location</label>
+    <div class="input-group">
+        <input
+            type="text"
+            id="location_name"
+            name="location_name"
+            class="form-control"
+            value="<%= itinerary.location_name %>"
+            placeholder="Search for a location"
+            required>
 
-<input
-type="text"
-name="location_name"
-class="form-control"
-value="<%= itinerary.location_name %>"
-required>
+        <button
+            type="button"
+            class="btn btn-outline-primary"
+            onclick="searchLocation()">
+            Search
+        </button>
+    </div>
 
+    <div id="searchResult" class="form-text mt-2"></div>
 </div>
 
-<div class="row">
-
-<div class="col-md-6 mb-3">
-
-<label class="form-label">Latitude</label>
-
 <input
-type="number"
-step="any"
+type="hidden"
+id="latitude"
 name="latitude"
-class="form-control"
 value="<%= itinerary.latitude %>">
 
-<div class="form-text">
-Example: 1.3521 (North is positive)
-</div>
-
-</div>
-
-<div class="col-md-6 mb-3">
-
-<label class="form-label">Longitude</label>
-
 <input
-type="number"
-step="any"
+type="hidden"
+id="longitude"
 name="longitude"
-class="form-control"
 value="<%= itinerary.longitude %>">
-
-<div class="form-text">
-Example: 103.8198 (East is positive)
-</div>
-
-</div>
-
-</div>
 
 <div class="mb-3">
 
@@ -123,5 +109,32 @@ Save Changes
 
 </div>
 
+<script>
+async function searchLocation() {
+
+    const location = document.getElementById("location_name").value;
+
+    if (!location) {
+        alert("Please enter a location.");
+        return;
+    }
+
+    const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}`
+    );
+
+    const data = await response.json();
+
+    if (data.length === 0) {
+        document.getElementById("searchResult").innerHTML = "Location not found.";
+        return;
+    }
+
+    document.getElementById("location_name").value = data[0].display_name;
+    document.getElementById("latitude").value = data[0].lat;
+    document.getElementById("longitude").value = data[0].lon;
+    document.getElementById("searchResult").innerHTML = "✓ Location found!";
+}
+</script>
 </body>
 </html>
