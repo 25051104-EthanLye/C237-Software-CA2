@@ -1,73 +1,129 @@
+
+
 <!DOCTYPE html>
 <html>
 <head>
     <title>My Bookings | VividVoyage</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #f4f7fb; }
+        .page-title { font-weight: 700; color: #99BDBC; margin-bottom: 5px; }
+        .page-subtitle { color: #6c757d; margin-bottom: 0; }
+        .table-custom { border-radius: 12px; overflow: hidden; background: white; }
+        .table-custom thead { background-color: #dbeafe; color: #1e3a8a; }
+    </style>
 </head>
 <body class="bg-light">
 
 <%- include('partials/navbar') %>
 
-<div class="container py-5" style="margin-top:120px;">
+<div class="container py-5" style="margin-top:100px;">
 
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="fw-bold" style="color:#99BDBC;">My Flight Bookings</h2>
-            <small class="text-muted">Manage your booked flights</small>
+            <h2 class="page-title">My Flight Bookings</h2>
+            <p class="page-subtitle">Manage your booked flights</p>
         </div>
         <a href="/flights" class="btn btn-primary">+ Book Another Flight</a>
     </div>
 
-    <div class="card shadow">
-        <div class="card-body">
-
-            <table class="table table-hover align-middle">
-                <thead class="table-primary">
+    <% if (!bookings || bookings.length === 0) { %>
+        <div class="card border-0 shadow text-center p-5 rounded-4">
+            <div style="font-size:60px;">✈️</div>
+            <h4 class="mt-3">No Bookings Found</h4>
+            <p class="text-muted">You haven't booked any flights yet.</p>
+            <div>
+                <a href="/flights" class="btn btn-primary rounded-pill">Browse Flights</a>
+            </div>
+        </div>
+    <% } else { %>
+        <div class="table-responsive shadow table-custom">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
                     <tr>
-                        <th>Flight</th>
+                        <th class="ps-4">Flight</th>
                         <th>Destination</th>
                         <th>Date / Time</th>
                         <th>Seat</th>
                         <th>Price</th>
-                        <th width="220">Actions</th>
+                        <th class="text-end pe-4">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-
-                <% if(bookings.length === 0){ %>
-                    <tr>
-                        <td colspan="6" class="text-center text-muted py-4">
-                            You have no flight bookings yet.
-                        </td>
-                    </tr>
-                <% } else { %>
-                    <% bookings.forEach(b => { %>
-                    <tr>
-                        <td><strong><%= b.flight_number %></strong></td>
-                        <td><%= b.destination %></td>
-                        <td>
-                            <%= new Date(b.departure_date).toLocaleDateString() %>
-                            &nbsp;|&nbsp; <strong>Dep:</strong> <%= b.departure_time %>
-                            &nbsp;→&nbsp; <strong>Arr:</strong> <%= b.arrival_time || 'TBD' %>
-                        </td>
-                        <td><span class="badge bg-info text-dark"><%= b.seat_preference %></span></td>
-                        <td>$<%= Number(b.price).toFixed(2) %></td>
-                        <td>
-                            <a href="/bookings/<%= b.id %>/seat" class="btn btn-warning btn-sm">Change Seat</a>
-                            <form action="/bookings/<%= b.id %>/cancel" method="POST" class="d-inline">
-                                <button class="btn btn-danger btn-sm" onclick="return confirm('Cancel this booking?')">Cancel</button>
-                            </form>
-                        </td>
-                    </tr>
+                    <% bookings.forEach(booking => { %>
+                        <tr class="booking-row" 
+                            data-departure="<%= booking.departure_time %>" 
+                            data-duration="<%= booking.duration %>" 
+                            data-arrival="<%= booking.arrival_time %>">
+                            
+                            <td class="ps-4 fw-bold"><%= booking.flight_number %></td>
+                            <td><%= booking.destination %></td>
+                            <td>
+                                <%= new Date(booking.departure_date).toLocaleDateString() %>
+                                &nbsp;|&nbsp; 
+                                <strong>Dep:</strong> <%= booking.departure_time || 'TBD' %>
+                                &nbsp;→&nbsp; 
+                                <strong>Arr:</strong> <span class="arrival-time"><%= booking.arrival_time || 'TBD' %></span>
+                            </td>
+                            <td>
+                                <span class="badge bg-info text-dark"><%= booking.seat_preference %></span>
+                            </td>
+                            <td class="fw-bold">$<%= Number(booking.price).toFixed(2) %></td>
+                            <td class="text-end pe-4">
+                                <a href="/bookings/<%= booking.id %>/seat" class="btn btn-sm btn-warning">Change Seat</a>
+                                <form action="/bookings/<%= booking.id %>/cancel" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to cancel this booking?');">
+                                    <button class="btn btn-sm btn-danger">Cancel</button>
+                                </form>
+                            </td>
+                        </tr>
                     <% }) %>
-                <% } %>
-
                 </tbody>
             </table>
-
         </div>
-    </div>
+    <% } %>
+
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+// Compute arrival times client-side when DB arrival_time is missing.
+function parseDurationToMinutes(s){
+    if(!s) return 0;
+    s = String(s);
+    let mins = 0;
+    const h = s.match(/(\d+)\s*h/);
+    if(h) mins += Number(h[1]) * 60;
+    const m = s.match(/(\d+)\s*m/);
+    if(m) mins += Number(m[1]);
+    if(mins === 0 && /^\d+$/.test(s)) mins = Number(s);
+    return mins;
+}
+
+function computeArrival(dep, dur){
+    if(!dep) return null;
+    const dh = String(dep).match(/(\d{1,2}):(\d{2})/);
+    if(!dh) return null;
+    const depMins = Number(dh[1]) * 60 + Number(dh[2]);
+    const arrMins = (depMins + parseDurationToMinutes(dur)) % 1440;
+    const ah = String(Math.floor(arrMins / 60)).padStart(2,'0');
+    const am = String(arrMins % 60).padStart(2,'0');
+    return ah + ':' + am;
+}
+
+document.addEventListener('DOMContentLoaded', ()=>{
+    document.querySelectorAll('.booking-row').forEach(row => {
+        const dep = row.dataset.departure;
+        const dur = row.dataset.duration;
+        const arr = row.dataset.arrival;
+        const span = row.querySelector('.arrival-time');
+        if(span && (!arr || arr === 'null' || arr === '')){
+            const computed = computeArrival(dep, dur);
+            if(computed) span.textContent = computed;
+        }
+    });
+});
+</script>
 
 </body>
 </html>

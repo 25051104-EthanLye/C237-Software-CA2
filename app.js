@@ -440,8 +440,8 @@ app.post('/flights/book/:flightId', isAuthenticated, (req, res) => {
 
         if (err) {
             console.log(err);
-            return res.send("Database Error");
-        }
+            return res.send(err.message);
+}
 
         if (results.length === 0) {
             req.flash('error', 'That flight no longer exists.');
@@ -455,10 +455,10 @@ app.post('/flights/book/:flightId', isAuthenticated, (req, res) => {
 
         db.query(sql, [req.session.user.id, flightId, seat_preference], (err) => {
 
-            if (err) {
-                console.log(err);
-                return res.send("Database Error");
-            }
+        if (err) {
+            console.log(err);
+            return res.send("Database Error");
+}
 
             req.flash('success', 'Flight booked successfully!');
             res.redirect('/bookings');
@@ -474,7 +474,7 @@ app.get('/bookings', isAuthenticated, (req, res) => {
 
     const sql = `
         SELECT flight_bookings.*, flights.flight_number, flights.destination,
-               flights.departure_date, flights.departure_time, flights.arrival_time, flights.duration, flights.price
+               flights.departure_date, flights.departure_time, flights.duration, flights.price
         FROM flight_bookings
         JOIN flights ON flight_bookings.flight_id = flights.id
         WHERE flight_bookings.user_id = ?
@@ -485,7 +485,7 @@ app.get('/bookings', isAuthenticated, (req, res) => {
 
         if (err) {
             console.log(err);
-            return res.send("Database Error");
+            return res.send(err.message);
         }
 
         res.render('bookings', {
@@ -496,6 +496,7 @@ app.get('/bookings', isAuthenticated, (req, res) => {
 
 });
 
+
 // 11. CHANGE SEAT - SHOW FORM (Update)
 app.get('/bookings/:id/seat', isAuthenticated, (req, res) => {
 
@@ -503,7 +504,7 @@ app.get('/bookings/:id/seat', isAuthenticated, (req, res) => {
 
     const sql = `
         SELECT flight_bookings.*, flights.flight_number, flights.destination,
-               flights.departure_date, flights.departure_time, flights.arrival_time
+               flights.departure_date, flights.departure_time, flights.duration, flights.arrival_time
         FROM flight_bookings
         JOIN flights ON flight_bookings.flight_id = flights.id
         WHERE flight_bookings.id = ? AND flight_bookings.user_id = ?

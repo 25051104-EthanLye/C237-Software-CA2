@@ -22,10 +22,10 @@
         <div class="mb-3">
             <strong>Destination:</strong> <%= flight.destination %>
         </div>
-        <div class="mb-3">
+        <div class="mb-3" data-departure="<%= flight.departure_time %>" data-duration="<%= flight.duration %>" data-arrival="<%= flight.arrival_time %>">
             <strong>Date:</strong> <%= new Date(flight.departure_date).toLocaleDateString() %>
             &nbsp;|&nbsp; <strong>Departure:</strong> <%= flight.departure_time || 'TBD' %>
-            &nbsp;→&nbsp; <strong>Arrival:</strong> <%= flight.arrival_time || 'TBD' %>
+            &nbsp;→&nbsp; <strong>Arrival:</strong> <span class="arrival-time"><%= flight.arrival_time || 'TBD' %></span>
         </div>
         <div class="mb-4">
             <strong>Price:</strong> $<%= Number(flight.price).toFixed(2) %>
@@ -43,8 +43,6 @@
                 </select>
             </div>
 
-            
-
             <button class="btn btn-primary">Confirm Booking</button>
             <a href="/flights" class="btn btn-secondary">Cancel</a>
 
@@ -55,6 +53,46 @@
 </div>
 </div>
 </div>
+
+<script>
+// Compute arrival times client-side when DB arrival_time is missing.
+function parseDurationToMinutes(s){
+    if(!s) return 0;
+    s = String(s);
+    let mins = 0;
+    const h = s.match(/(\d+)\s*h/);
+    if(h) mins += Number(h[1]) * 60;
+    const m = s.match(/(\d+)\s*m/);
+    if(m) mins += Number(m[1]);
+    if(mins === 0 && /^\d+$/.test(s)) mins = Number(s);
+    return mins;
+}
+
+function computeArrival(dep, dur){
+    if(!dep) return null;
+    const dh = String(dep).match(/(\d{1,2}):(\d{2})/);
+    if(!dh) return null;
+    const depMins = Number(dh[1]) * 60 + Number(dh[2]);
+    const arrMins = (depMins + parseDurationToMinutes(dur)) % 1440;
+    const ah = String(Math.floor(arrMins / 60)).padStart(2,'0');
+    const am = String(arrMins % 60).padStart(2,'0');
+    return ah + ':' + am;
+}
+
+document.addEventListener('DOMContentLoaded', ()=>{
+    const container = document.querySelector('[data-departure]');
+    if(container){
+        const dep = container.dataset.departure;
+        const dur = container.dataset.duration;
+        const arr = container.dataset.arrival;
+        const span = container.querySelector('.arrival-time');
+        if(span && (!arr || arr === 'null' || arr === '')){
+            const computed = computeArrival(dep, dur);
+            if(computed) span.textContent = computed;
+        }
+    }
+});
+</script>
 
 </body>
 </html>

@@ -3,54 +3,113 @@
 <head>
     <title>Change Seat | VividVoyage</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #f4f7fb; }
+    </style>
 </head>
 <body class="bg-light">
 
 <%- include('partials/navbar') %>
 
 <div class="container py-5" style="margin-top:120px;">
-<div class="row justify-content-center">
-<div class="col-md-6">
-<div class="card shadow">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow border-0 rounded-4 overflow-hidden">
 
-    <div class="card-header bg-warning">
-        <h3>Change Seat</h3>
-    </div>
+                <div class="card-header bg-warning text-dark py-3">
+                    <h3 class="mb-0 fw-bold">Change Seat</h3>
+                </div>
 
-    <div class="card-body">
+                <div class="card-body p-4">
 
-        <div class="mb-3">
-            <strong>Flight:</strong> <%= booking.flight_number %> to <%= booking.destination %>
-        </div>
-        <div class="mb-4">
-            <strong>Date:</strong> <%= new Date(booking.departure_date).toLocaleDateString() %>
-            &nbsp;|&nbsp; <strong>Dep:</strong> <%= booking.departure_time %>
-            &nbsp;→&nbsp; <strong>Arr:</strong> <%= booking.arrival_time || 'TBD' %>
-        </div>
+                    <div class="mb-2 fs-5">
+                        <strong>Flight:</strong> <%= booking.flight_number %> to <%= booking.destination %>
+                    </div>
 
-        <form action="/bookings/<%= booking.id %>/seat" method="POST">
+                    <!-- CRITICAL FIX: The data- attributes below allow JS to parse the duration -->
+                    <div class="mb-4 booking-date-time-container" 
+                         data-departure="<%= booking.departure_time %>" 
+                         data-duration="<%= booking.duration %>" 
+                         data-arrival="<%= booking.arrival_time %>">
+                        <strong>Date:</strong> <%= new Date(booking.departure_date).toLocaleDateString() %>
+                        &nbsp;|&nbsp; 
+                        <strong>Dep:</strong> <%= booking.departure_time || 'TBD' %>
+                        &nbsp;→&nbsp; 
+                        <strong>Arr:</strong> <span class="arrival-time"><%= booking.arrival_time || 'TBD' %></span>
+                    </div>
 
-            <div class="mb-3">
-                <label class="form-label">Seat Preference</label>
-                <select name="seat_preference" class="form-select" required>
-                    <option value="Window" <%= booking.seat_preference === 'Window' ? 'selected' : '' %>>Window</option>
-                    <option value="Middle" <%= booking.seat_preference === 'Middle' ? 'selected' : '' %>>Middle</option>
-                    <option value="Aisle" <%= booking.seat_preference === 'Aisle' ? 'selected' : '' %>>Aisle</option>
-                </select>
+                    <form action="/bookings/<%= booking.id %>/seat" method="POST">
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Seat Preference</label>
+                            <select name="seat_preference" class="form-select form-select-lg" required>
+                                <option value="Window" <%= booking.seat_preference === 'Window' ? 'selected' : '' %>>Window</option>
+                                <option value="Middle" <%= booking.seat_preference === 'Middle' ? 'selected' : '' %>>Middle</option>
+                                <option value="Aisle" <%= booking.seat_preference === 'Aisle' ? 'selected' : '' %>>Aisle</option>
+                            </select>
+                        </div>
+
+                        <div class="d-flex justify-content-between pt-2">
+                            <a href="/bookings" class="btn btn-secondary px-4">Cancel</a>
+                            <button type="submit" class="btn btn-warning fw-bold px-4">Save Changes</button>
+                        </div>
+
+                    </form>
+
+                </div>
             </div>
-
-            <div class="d-flex justify-content-between">
-                <a href="/bookings" class="btn btn-secondary">Cancel</a>
-                <button type="submit" class="btn btn-warning">Save Changes</button>
-            </div>
-
-        </form>
-
+        </div>
     </div>
 </div>
-</div>
-</div>
-</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+function parseDurationToMinutes(s) {
+    if (!s) return 0;
+    s = String(s).toLowerCase();
+    let mins = 0;
+    const h = s.match(/(\d+)\s*h/);
+    if (h) mins += parseInt(h[1], 10) * 60;
+    const m = s.match(/(\d+)\s*m/);
+    if (m) mins += parseInt(m[1], 10);
+    if (mins === 0 && /^\d+$/.test(s.trim())) {
+        mins = parseInt(s.trim(), 10);
+    }
+    return mins;
+}
+
+function computeArrival(dep, dur) {
+    if (!dep) return null;
+    const match = String(dep).match(/(\d{1,2}):(\d{2})/);
+    if (!match) return null;
+    
+    const depMins = parseInt(match[1], 10) * 60 + parseInt(match[2], 10);
+    const durMins = parseDurationToMinutes(dur);
+    
+    if (durMins === 0) return null;
+    
+    const arrMins = (depMins + durMins) % 1440;
+    const ah = String(Math.floor(arrMins / 60)).padStart(2, '0');
+    const am = String(arrMins % 60).padStart(2, '0');
+    return ah + ':' + am;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const container = document.querySelector('.booking-date-time-container');
+    if (container) {
+        const dep = container.dataset.departure;
+        const dur = container.dataset.duration;
+        const arr = container.dataset.arrival;
+        const span = container.querySelector('.arrival-time');
+        
+        if (span && (!arr || arr === 'null' || arr === 'undefined' || arr.trim() === '' || arr === 'TBD')) {
+            const computed = computeArrival(dep, dur);
+            if (computed) span.textContent = computed;
+        }
+    }
+});
+</script>
 
 </body>
 </html>
