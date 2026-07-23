@@ -8,67 +8,82 @@
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --white: #FFFFFF; --peach: #E2C1AA; --teal: #99BDBC;
-            --blue: #A2BFCE; --dark-text: #2C3E50; --light-bg: #F8F9FA;
-            --teal-deep: #5f8f8e;
+            --white:#FFFFFF; --peach:#E2C1AA; --teal:#99BDBC; --blue:#A2BFCE;
+            --dark-text:#2C3E50; --light-bg:#F8F9FA; --teal-deep:#5f8f8e;
         }
-        * { font-family: 'Nunito', sans-serif; }
-        body { background: #F8F5F1; color: var(--dark-text); }
-        .edit-wrap { max-width: 480px; margin: 130px auto 60px; padding: 0 18px; }
-        .edit-card {
-            background: var(--white); border-radius: 20px; overflow: hidden;
-            box-shadow: 0 14px 40px rgba(44,62,80,.10); border: 1px solid #eee7df;
-        }
-        .edit-head { background: linear-gradient(135deg, var(--teal), var(--teal-deep)); color:#fff; padding: 24px 28px; }
-        .edit-head h3 { font-weight: 800; margin: 0; }
-        .edit-head p { margin: 4px 0 0; opacity: .9; font-weight: 600; }
-        .edit-body { padding: 28px; }
-        .context {
-            background: var(--light-bg); border-radius: 12px; padding: 14px 16px; margin-bottom: 20px;
-            font-weight: 700; color: #566; font-size: .92rem;
-        }
-        .form-label { font-weight: 800; font-size: .88rem; color: var(--teal-deep); }
-        .form-select { border: 1.5px solid var(--blue); border-radius: 12px; padding: 12px 14px; font-weight: 600; }
-        .form-select:focus { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(153,189,188,.3); }
-        .btn-teal { background: var(--teal); color:#143b3a; font-weight:800; border:none; border-radius:999px; padding:13px; width:100%; }
-        .btn-teal:hover { background: var(--teal-deep); color:#fff; }
+        * { font-family:'Nunito', sans-serif; }
+        body { background:#F8F5F1; color:var(--dark-text); }
+        .edit-wrap { max-width:520px; margin:120px auto 60px; padding:0 18px; }
+        .edit-card { background:var(--white); border-radius:22px; overflow:hidden; box-shadow:0 16px 44px rgba(44,62,80,.12); border:1px solid #eee7df; }
+        .edit-cover { height:150px; background-size:cover; background-position:center; position:relative; }
+        .edit-cover::after { content:''; position:absolute; inset:0; background:linear-gradient(to top, rgba(20,45,44,.8), rgba(20,45,44,.1)); }
+        .edit-cover-text { position:absolute; left:24px; bottom:16px; z-index:2; color:#fff; }
+        .edit-cover-text h2 { font-weight:800; margin:0; text-shadow:0 2px 8px rgba(0,0,0,.35); }
+        .edit-cover-text p { margin:2px 0 0; font-weight:700; opacity:.95; }
+        .edit-body { padding:26px 28px 30px; }
+        .context { background:var(--light-bg); border-radius:12px; padding:13px 16px; margin-bottom:22px; font-weight:700; color:#566; font-size:.92rem; }
+        .field-label { font-weight:800; font-size:.82rem; color:var(--teal-deep); text-transform:uppercase; letter-spacing:.4px; margin-bottom:10px; display:block; }
+
+        .room-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:24px; }
+        .room-option input { position:absolute; opacity:0; pointer-events:none; }
+        .room-card { display:block; cursor:pointer; border:1.5px solid var(--blue); border-radius:14px; padding:14px 16px; transition:all .16s; background:var(--white); }
+        .room-card:hover { border-color:var(--teal); }
+        .room-option input:checked + .room-card { border-color:var(--teal); background:rgba(153,189,188,.16); box-shadow:0 0 0 3px rgba(153,189,188,.25); }
+        .room-name { font-weight:800; display:block; }
+        .room-desc { color:#8a9499; font-weight:600; font-size:.82rem; }
+
+        .btn-update { width:100%; background:var(--teal); color:#143b3a; font-weight:800; border:none; border-radius:999px; padding:15px; font-size:1.05rem; transition:all .2s; cursor:pointer; }
+        .btn-update:hover { background:var(--teal-deep); color:#fff; }
+        .back-link { display:block; text-align:center; margin-top:16px; color:var(--teal-deep); font-weight:700; text-decoration:none; }
     </style>
 </head>
 <body>
 
 <%- include('partials/navbar') %>
 
+<%
+    const covers = [
+        'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=800&q=80'
+    ];
+    const cover = covers[reservation.hotel_id % covers.length];
+    const rooms = [
+        ['Standard','Cosy & comfy'], ['Deluxe','Extra space'],
+        ['Suite','Top comfort'], ['Family','Room for all']
+    ];
+%>
+
 <div class="edit-wrap">
     <div class="edit-card">
-        <div class="edit-head">
-            <h3>Change your room</h3>
-            <p><%= reservation.name %></p>
+        <div class="edit-cover" style="background-image:url('<%= cover %>');">
+            <div class="edit-cover-text">
+                <h2><%= reservation.name %></h2>
+                <p>📍 <%= reservation.location %></p>
+            </div>
         </div>
         <div class="edit-body">
-
             <div class="context">
-                📍 <%= reservation.location %><br>
-                <%= new Date(reservation.check_in_date).toLocaleDateString() %>
+                🗓️ <%= new Date(reservation.check_in_date).toLocaleDateString() %>
                 &rarr; <%= new Date(reservation.checkout_date).toLocaleDateString() %>
             </div>
 
             <form action="/reservations/<%= reservation.id %>/room" method="POST">
-                <div class="mb-4">
-                    <label class="form-label">Room type</label>
-                    <select name="room_type" class="form-select" required>
-                        <% const types = ['Standard', 'Deluxe', 'Suite', 'Family']; %>
-                        <% types.forEach(t => { %>
-                            <option value="<%= t %>" <%= reservation.room_type === t ? 'selected' : '' %>><%= t %></option>
-                        <% }) %>
-                    </select>
+                <label class="field-label">Pick a new room</label>
+                <div class="room-grid">
+                    <% rooms.forEach(([name, desc]) => { %>
+                        <label class="room-option">
+                            <input type="radio" name="room_type" value="<%= name %>" <%= reservation.room_type === name ? 'checked' : '' %> required>
+                            <span class="room-card"><span class="room-name"><%= name %></span><span class="room-desc"><%= desc %></span></span>
+                        </label>
+                    <% }) %>
                 </div>
 
-                <button type="submit" class="btn-teal">Update room</button>
+                <button type="submit" class="btn-update">Update room</button>
             </form>
 
-            <div class="text-center mt-3">
-                <a href="/reservations" style="color:var(--teal-deep); font-weight:700; text-decoration:none;">&larr; Back to reservations</a>
-            </div>
+            <a href="/reservations" class="back-link">&larr; Back to reservations</a>
         </div>
     </div>
 </div>

@@ -235,6 +235,7 @@
     <div class="search-widget-container">
         <div class="search-widget">
             
+            <!--Styling Buttons and the widget-->
             <div class="search-tabs" style="margin-bottom: 25px; display: flex; gap: 30px; border-bottom: 2px solid #E8EEEE; padding-bottom: 10px;">
                 <button type="button" class="tab active" style="font-size: 18px; font-weight: 800; border: none; background: none; color: var(--dark-text); border-bottom: 3px solid var(--teal); padding-bottom: 5px; cursor: pointer;" onclick="switchSearchTab('flight', this)">✈️ Flights</button>
                 <button type="button" class="tab" style="font-size: 18px; font-weight: 800; border: none; background: none; color: #888; padding-bottom: 5px; cursor: pointer; transition: 0.3s;" onclick="switchSearchTab('hotel', this)">🏨 Hotels & Homes</button>
@@ -381,26 +382,27 @@
                 <a href="/hotels" class="view-all">View All Hotels &rarr;</a>
             </div>
             
-            <div class="item-card">
-                <div class="item-img" style="background-image: url('https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80');"></div>
-                <div class="item-details">
-                    <div class="item-title">The Alpine Retreat</div>
-                    <div class="item-subtitle">Swiss Alps, Switzerland • ⭐⭐⭐⭐</div>
-                    <div class="item-price">$210.00 <span style="font-size:14px; color:#888; font-weight:400;">/ night</span></div>
-                    <a href="/hotels" class="book-btn">Reserve Room</a>
-                </div>
-            </div>
-
-            <div class="item-card">
-                <div class="item-img" style="background-image: url('https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80');"></div>
-                <div class="item-details">
-                    <div class="item-title">Shibuya Grand Hotel</div>
-                    <div class="item-subtitle">Tokyo, Japan • ⭐⭐⭐⭐⭐</div>
-                    <div class="item-price">$340.00 <span style="font-size:14px; color:#888; font-weight:400;">/ night</span></div>
-                    <a href="/hotels" class="book-btn">Reserve Room</a>
-                </div>
-            </div>
-        </div>
+         <% if (typeof hotels !== 'undefined' && hotels.length > 0) { %>
+                <% const covers = [
+                    'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=600&q=80',
+                    'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=600&q=80'
+                ]; %>
+                <% hotels.forEach((hotel, i) => { %>
+                    <div class="item-card">
+                        <div class="item-img" style="background-image: url('<%= covers[i % covers.length] %>'); position:relative;">
+                            <span style="position:absolute; top:12px; right:12px; background:rgba(255,255,255,0.92); color:var(--teal); font-weight:800; font-size:14px; padding:6px 12px; border-radius:999px; box-shadow:0 2px 8px rgba(0,0,0,0.12);">$<%= Number(hotel.price_per_night).toFixed(0) %><span style="color:#888; font-weight:600;">/night</span></span>
+                        </div>
+                        <div class="item-details">
+                            <div class="item-title"><%= hotel.name %></div>
+                            <div class="item-subtitle">📍 <%= hotel.location %></div>
+                            <a href="/hotels/book/<%= hotel.id %>" class="btn book-btn" style="background:var(--teal); color:var(--white); border-color:var(--teal);">🛏️ Reserve Room</a>
+                        </div>
+                    </div>
+                <% }) %>
+            <% } else { %>
+                <p style="grid-column: 1 / -1; color:#888; font-weight:600;">No hotels available yet — check back soon!</p>
+            <% } %>
     </section>
 
     <script>

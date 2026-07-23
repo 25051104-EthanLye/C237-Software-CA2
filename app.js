@@ -96,11 +96,16 @@ const isAdmin = (req, res, next) => {
 // ------------------------------------------------------- Ethan's Path start
 // 1. HOME ROUTE
 app.get('/', (req, res) => {
-    res.render('index', { 
-        messages: req.flash('success'),
-        errors: req.flash('error') 
+    // Darrence: fetch a few real hotels for the Trending Hotels section
+    db.query('SELECT * FROM hotels ORDER BY id DESC LIMIT 3', (err, hotels) => {
+        if (err) { console.log(err); hotels = []; }
+        res.render('index', {
+            messages: req.flash('success'),
+            errors: req.flash('error'),
+            hotels: hotels
+        });
     });
-});
+}); // Darrence: end of home route
 
 // 2. REGISTER GET ROUTE
 app.get('/register', (req, res) => {
@@ -153,12 +158,6 @@ app.post('/login', (req, res) => {
         if (err) throw err;
         
         if (results.length > 0) {
-            // ARVIN: block suspended accounts from logging in
-            if (results[0].account_status === 'suspended') {
-                req.flash('error', 'Your account has been suspended. Please contact support.');
-                return req.session.save(() => res.redirect(targetUrl));
-            }
-            
             req.session.user = results[0]; 
             req.session.save(() => res.redirect(targetUrl)); 
         } else {
@@ -426,50 +425,30 @@ app.get('/flights/book/:flightId', isAuthenticated, (req, res) => {
 });
 
 // 9. BOOK FLIGHT - INSERT (Create)
-// 9. BOOK FLIGHT - INSERT (Create)
 app.post('/flights/book/:flightId', isAuthenticated, (req, res) => {
 
     const flightId = req.params.flightId;
     const { seat_preference } = req.body;
 
-    const allowedSeats = ['Window', 'Middle', 'Aisle'];
-
-    if (!seat_preference || !allowedSeats.includes(seat_preference)) {
-        req.flash('error', 'Please select a valid seat preference.');
+    if (!seat_preference) {
+        req.flash('error', 'Please select a seat preference.');
         return res.redirect('/flights/book/' + flightId);
     }
 
-    // Confirm the flight actually exists before inserting a booking for it
-    const checkSql = `SELECT id FROM flights WHERE id = ?`;
+    const sql = `
+        INSERT INTO flight_bookings (user_id, flight_id, seat_preference)
+        VALUES (?, ?, ?)
+    `;
 
-    db.query(checkSql, [flightId], (err, results) => {
-
-        if (err) {
-            console.log(err);
-            return res.send(err.message);
-}
-
-        if (results.length === 0) {
-            req.flash('error', 'That flight no longer exists.');
-            return res.redirect('/flights');
-        }
-
-        const sql = `
-            INSERT INTO flight_bookings (user_id, flight_id, seat_preference)
-            VALUES (?, ?, ?)
-        `;
-
-        db.query(sql, [req.session.user.id, flightId, seat_preference], (err) => {
+    db.query(sql, [req.session.user.id, flightId, seat_preference], (err) => {
 
         if (err) {
             console.log(err);
             return res.send("Database Error");
-}
+        }
 
-            req.flash('success', 'Flight booked successfully!');
-            res.redirect('/bookings');
-
-        });
+        req.flash('success', 'Flight booked successfully!');
+        res.redirect('/bookings');
 
     });
 
@@ -480,7 +459,7 @@ app.get('/bookings', isAuthenticated, (req, res) => {
 
     const sql = `
         SELECT flight_bookings.*, flights.flight_number, flights.destination,
-               flights.departure_date, flights.departure_time, flights.duration, flights.price
+               flights.departure_date, flights.departure_time, flights.arrival_time, flights.duration, flights.price
         FROM flight_bookings
         JOIN flights ON flight_bookings.flight_id = flights.id
         WHERE flight_bookings.user_id = ?
@@ -491,7 +470,7 @@ app.get('/bookings', isAuthenticated, (req, res) => {
 
         if (err) {
             console.log(err);
-            return res.send(err.message);
+            return res.send("Database Error");
         }
 
         res.render('bookings', {
@@ -502,7 +481,6 @@ app.get('/bookings', isAuthenticated, (req, res) => {
 
 });
 
-
 // 11. CHANGE SEAT - SHOW FORM (Update)
 app.get('/bookings/:id/seat', isAuthenticated, (req, res) => {
 
@@ -510,7 +488,7 @@ app.get('/bookings/:id/seat', isAuthenticated, (req, res) => {
 
     const sql = `
         SELECT flight_bookings.*, flights.flight_number, flights.destination,
-               flights.departure_date, flights.departure_time, flights.duration, flights.arrival_time
+               flights.departure_date, flights.departure_time, flights.arrival_time
         FROM flight_bookings
         JOIN flights ON flight_bookings.flight_id = flights.id
         WHERE flight_bookings.id = ? AND flight_bookings.user_id = ?
@@ -584,6 +562,7 @@ app.post('/bookings/:id/cancel', isAuthenticated, (req, res) => {
 
 
 //--------------------------------------------------------Shao Feng's Path end
+
 
 // ------------------------------------------------------- Darrence's Path start
 // --- MEMBER 3: HOTEL STAYS (hotel_reservations) --- //
@@ -756,14 +735,30 @@ app.get('/trip/:id/schedule', isAuthenticated, (req, res) => {
 });
 
 app.post('/trip/:id/add', isAuthenticated, (req, res) => {
+
+    console.log("req.body:", req.body);
+
     const tripId = req.params.id;
     const { location_name, latitude, longitude, visit_time } = req.body;
-    const sql = `INSERT INTO itineraries (trip_id, user_id, location_name, latitude, longitude, visit_time) VALUES (?, ?, ?, ?, ?, ?)`;
 
-    db.query(sql, [tripId, req.session.user.id, location_name, latitude, longitude, visit_time], (err) => {
-        if (err) { console.log(err); return res.send("Database Error"); }
-        res.redirect("/trip/" + tripId);
-    });
+    const sql = `
+        INSERT INTO itineraries
+        (trip_id, user_id, location_name, latitude, longitude, visit_time)
+        VALUES (?, ?, ?, ?, ?, ?)
+    `;
+
+    db.query(
+        sql,
+        [tripId, req.session.user.id, location_name, latitude, longitude, visit_time],
+        (err) => {
+            if (err) {
+                console.log(err);
+                return res.send("Database Error");
+            }
+
+            res.redirect("/trip/" + tripId);
+        }
+    );
 });
 
 app.get('/trip/:id/add', isAuthenticated, (req, res) => {
@@ -1391,7 +1386,7 @@ app.get('/admin/users', isAdmin, (req, res) => {
 
 // BAN: block a user from logging in
 app.post('/admin/users/ban/:id', isAdmin, (req, res) => {
-    const sql = "UPDATE users SET account_status = 'suspended' WHERE id = ?";
+    const sql = "UPDATE users SET account_status = 'banned' WHERE id = ?";
 
     db.query(sql, [req.params.id], (err) => {
         if (err) { console.log(err); return res.send("Database Error"); }

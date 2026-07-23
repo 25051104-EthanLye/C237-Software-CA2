@@ -8,119 +8,172 @@
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --white: #FFFFFF; --peach: #E2C1AA; --teal: #99BDBC;
-            --blue: #A2BFCE; --dark-text: #2C3E50; --light-bg: #F8F9FA;
-            --teal-deep: #5f8f8e;
+            --white:#FFFFFF; --peach:#E2C1AA; --teal:#99BDBC; --blue:#A2BFCE;
+            --dark-text:#2C3E50; --light-bg:#F8F9FA; --teal-deep:#5f8f8e;
         }
-        * { font-family: 'Nunito', sans-serif; }
-        body { background: #F8F5F1; color: var(--dark-text); }
-        .res-wrap { max-width: 900px; margin: 130px auto 60px; padding: 0 18px; }
-        .res-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; }
-        .res-head h1 { font-weight: 800; letter-spacing: -.5px; }
-        .filter-input {
-            border: 1.5px solid var(--blue); border-radius: 999px; padding: 10px 18px;
-            font-weight: 600; outline: none; min-width: 240px;
-        }
-        .filter-input:focus { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(153,189,188,.3); }
+        * { font-family:'Nunito', sans-serif; }
+        body { background:#F8F5F1; color:var(--dark-text); }
+        .res-wrap { max-width:960px; margin:120px auto 60px; padding:0 18px; }
+        .res-title { font-weight:800; letter-spacing:-.5px; margin-bottom:4px; }
+        .res-sub { color:#7d8a92; font-weight:600; margin-bottom:22px; }
 
-        .res-card {
-            background: var(--white); border: 1px solid #eee7df; border-radius: 18px;
-            padding: 22px 24px; margin-top: 18px; box-shadow: 0 6px 20px rgba(44,62,80,.06);
-            display: flex; justify-content: space-between; gap: 18px; flex-wrap: wrap;
-        }
-        .res-card h3 { font-weight: 800; margin-bottom: 2px; }
-        .res-loc { color: var(--teal-deep); font-weight: 700; font-size: .9rem; margin-bottom: 10px; }
-        .res-meta { font-size: .92rem; color: #566; font-weight: 600; }
-        .res-meta strong { color: var(--dark-text); }
-        .room-pill {
-            display:inline-block; background: rgba(162,191,206,.3); color:#3f5a6b;
-            padding: 3px 12px; border-radius: 999px; font-size: .8rem; font-weight: 800; margin-top: 8px;
-        }
-        .badge-status { font-size: .75rem; font-weight: 800; padding: 5px 13px; border-radius: 999px; }
-        .badge-upcoming  { background:#dcecec; color: var(--teal-deep); }
-        .badge-ongoing   { background: var(--peach); color:#7a4a30; }
+        /* summary stat chips */
+        .stats { display:flex; gap:14px; flex-wrap:wrap; margin-bottom:24px; }
+        .stat { flex:1; min-width:150px; background:var(--white); border:1px solid #eee7df; border-radius:16px; padding:16px 20px; box-shadow:0 6px 20px rgba(44,62,80,.05); }
+        .stat .num { font-weight:800; font-size:1.7rem; color:var(--teal-deep); line-height:1; }
+        .stat .cap { color:#8a9499; font-weight:700; font-size:.82rem; margin-top:4px; }
+
+        /* controls */
+        .controls { display:flex; gap:12px; flex-wrap:wrap; margin-bottom:8px; }
+        .filter-input { flex:1; min-width:220px; border:1.5px solid var(--blue); border-radius:999px; padding:11px 18px; font-weight:600; outline:none; }
+        .filter-input:focus { border-color:var(--teal); box-shadow:0 0 0 3px rgba(153,189,188,.3); }
+        .sort-select { border:1.5px solid var(--blue); border-radius:999px; padding:11px 18px; font-weight:700; outline:none; background:var(--white); color:var(--dark-text); }
+
+        /* reservation card */
+        .res-card { display:flex; gap:0; background:var(--white); border:1px solid #eee7df; border-radius:18px; overflow:hidden; margin-top:18px; box-shadow:0 6px 20px rgba(44,62,80,.06); transition:transform .15s, box-shadow .15s; }
+        .res-card:hover { transform:translateY(-4px); box-shadow:0 16px 34px rgba(44,62,80,.12); }
+        .res-cover { width:150px; flex-shrink:0; background-size:cover; background-position:center; background-color:var(--blue); }
+        .res-main { flex:1; padding:20px 22px; display:flex; justify-content:space-between; gap:18px; flex-wrap:wrap; }
+        .res-info { flex:1; min-width:200px; }
+        .res-name-row { display:flex; align-items:center; gap:10px; margin-bottom:2px; }
+        .res-name { font-weight:800; font-size:1.2rem; }
+        .res-loc { color:var(--teal-deep); font-weight:700; font-size:.9rem; margin-bottom:10px; }
+        .res-dates { font-weight:700; color:#566; font-size:.92rem; }
+        .room-pill { display:inline-block; background:rgba(162,191,206,.3); color:#3f5a6b; padding:3px 12px; border-radius:999px; font-size:.78rem; font-weight:800; margin-top:8px; }
+        .res-total { font-weight:800; font-size:1.15rem; margin-top:8px; }
+        .res-total span { font-weight:600; color:#8a9499; font-size:.82rem; }
+
+        .badge-status { font-size:.72rem; font-weight:800; padding:5px 12px; border-radius:999px; text-transform:uppercase; letter-spacing:.3px; }
+        .badge-upcoming { background:#dcecec; color:var(--teal-deep); }
+        .badge-ongoing { background:var(--peach); color:#7a4a30; }
         .badge-completed { background:#e7ecf1; color:#5a6b78; }
-        .total-line { font-weight: 800; font-size: 1.1rem; margin-top: 6px; }
-        .actions { display: flex; flex-direction: column; gap: 8px; justify-content: center; min-width: 150px; }
-        .btn-change { background: var(--teal); color:#143b3a; font-weight:800; border:none; border-radius:999px; padding:9px 16px; }
-        .btn-change:hover { background: var(--teal-deep); color:#fff; }
-        .btn-cancel { background:#f0d0c8; color:#8a3324; font-weight:800; border:none; border-radius:999px; padding:9px 16px; }
+
+        .actions { display:flex; flex-direction:column; gap:9px; justify-content:center; min-width:140px; }
+        .btn-change { background:var(--teal); color:#143b3a; font-weight:800; border:none; border-radius:999px; padding:9px 16px; text-align:center; text-decoration:none; transition:all .2s; }
+        .btn-change:hover { background:var(--teal-deep); color:#fff; }
+        .btn-cancel { background:#f0d0c8; color:#8a3324; font-weight:800; border:none; border-radius:999px; padding:9px 16px; cursor:pointer; transition:all .2s; width:100%; }
         .btn-cancel:hover { background:#e6b6ab; }
-        .empty {
-            text-align: center; color:#7d8a92; background: var(--white);
-            border-radius: 18px; padding: 50px 30px; margin-top: 24px; border: 1px dashed var(--blue);
-        }
+
+        .empty { text-align:center; color:#7d8a92; background:var(--white); border-radius:18px; padding:52px 30px; margin-top:16px; border:1px dashed var(--blue); }
+        .no-match { text-align:center; color:#9aa; font-weight:600; margin-top:24px; display:none; }
     </style>
 </head>
 <body>
 
 <%- include('partials/navbar') %>
 
+<%
+    const covers = [
+        'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=500&q=80',
+        'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=500&q=80',
+        'https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=500&q=80',
+        'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=500&q=80'
+    ];
+    const oneDay = 86400000;
+    const now = new Date(); now.setHours(0,0,0,0);
+    // pre-compute totals for the summary chips
+    let totalNights = 0, totalSpend = 0;
+    reservations.forEach(r => {
+        const n = Math.max(1, Math.round((new Date(r.checkout_date) - new Date(r.check_in_date)) / oneDay));
+        totalNights += n; totalSpend += n * Number(r.price_per_night);
+    });
+%>
+
 <div class="res-wrap">
-    <div class="res-head">
-        <h1>My reservations</h1>
-        <% if (reservations.length > 0) { %>
-            <input type="text" id="filter" class="filter-input" placeholder="🔍 Filter by hotel or city...">
-        <% } %>
-    </div>
+    <h1 class="res-title">My reservations</h1>
+    <p class="res-sub">Manage your upcoming and past hotel stays.</p>
 
-    <% if (reservations.length === 0) { %>
-        <div class="empty">
-            <h4 style="font-weight:800;">No stays booked yet</h4>
-            <p class="mb-3">When you reserve a room it'll show up here.</p>
-            <a href="/hotels" class="btn-change" style="text-decoration:none;">Browse hotels</a>
+    <% if (reservations.length > 0) { %>
+        <div class="stats">
+            <div class="stat"><div class="num"><%= reservations.length %></div><div class="cap">Total stays</div></div>
+            <div class="stat"><div class="num"><%= totalNights %></div><div class="cap">Nights booked</div></div>
+            <div class="stat"><div class="num">$<%= totalSpend.toFixed(0) %></div><div class="cap">Total spend</div></div>
         </div>
-    <% } else { %>
+
+        <div class="controls">
+            <input type="text" id="filter" class="filter-input" placeholder="🔍 Filter by hotel or city...">
+            <select id="sort" class="sort-select">
+                <option value="date">Sort: Check-in date</option>
+                <option value="price">Sort: Price (high → low)</option>
+                <option value="name">Sort: Hotel name</option>
+            </select>
+        </div>
+
+        <div id="resList">
         <% reservations.forEach(r => {
-            // --- computed on the server from the dates (no extra DB columns needed) ---
-            const oneDay = 1000 * 60 * 60 * 24;
-            const inD  = new Date(r.check_in_date);
-            const outD = new Date(r.checkout_date);
-            const nights = Math.max(1, Math.round((outD - inD) / oneDay));
-            const total  = (nights * Number(r.price_per_night)).toFixed(2);
-
-            const now = new Date(); now.setHours(0,0,0,0);
-            let status = 'Upcoming', cls = 'badge-upcoming';
-            if (now >= inD && now <= outD) { status = 'Ongoing';   cls = 'badge-ongoing'; }
-            else if (now > outD)           { status = 'Completed'; cls = 'badge-completed'; }
+            const nights = Math.max(1, Math.round((new Date(r.checkout_date) - new Date(r.check_in_date)) / oneDay));
+            const total = (nights * Number(r.price_per_night)).toFixed(2);
+            const inD = new Date(r.check_in_date), outD = new Date(r.checkout_date);
+            let status='Upcoming', cls='badge-upcoming';
+            if (now >= inD && now <= outD) { status='Ongoing'; cls='badge-ongoing'; }
+            else if (now > outD) { status='Completed'; cls='badge-completed'; }
+            const cover = covers[r.hotel_id % covers.length];
         %>
-            <div class="res-card" data-name="<%= (r.name + ' ' + r.location).toLowerCase() %>">
-                <div style="flex:1; min-width:220px;">
-                    <div class="d-flex align-items-center gap-2">
-                        <h3><%= r.name %></h3>
-                        <span class="badge-status <%= cls %>"><%= status %></span>
+            <div class="res-card"
+                 data-name="<%= (r.name + ' ' + r.location).toLowerCase() %>"
+                 data-date="<%= new Date(r.check_in_date).getTime() %>"
+                 data-total="<%= total %>">
+                <div class="res-cover" style="background-image:url('<%= cover %>');"></div>
+                <div class="res-main">
+                    <div class="res-info">
+                        <div class="res-name-row">
+                            <span class="res-name"><%= r.name %></span>
+                            <span class="badge-status <%= cls %>"><%= status %></span>
+                        </div>
+                        <div class="res-loc">📍 <%= r.location %></div>
+                        <div class="res-dates">
+                            <%= inD.toLocaleDateString() %> &rarr; <%= outD.toLocaleDateString() %>
+                            &nbsp;·&nbsp; <%= nights %> night<%= nights === 1 ? '' : 's' %>
+                        </div>
+                        <span class="room-pill"><%= r.room_type %> room</span>
+                        <div class="res-total">$<%= total %> <span>total</span></div>
                     </div>
-                    <p class="res-loc">📍 <%= r.location %></p>
-                    <p class="res-meta">
-                        <strong><%= new Date(r.check_in_date).toLocaleDateString() %></strong> &rarr;
-                        <strong><%= new Date(r.checkout_date).toLocaleDateString() %></strong>
-                        &nbsp;·&nbsp; <%= nights %> night<%= nights === 1 ? '' : 's' %>
-                    </p>
-                    <span class="room-pill"><%= r.room_type %> room</span>
-                    <div class="total-line">$<%= total %> <span style="font-weight:600; color:#8a9499; font-size:.85rem;">total</span></div>
-                </div>
-
-                <div class="actions">
-                    <a href="/reservations/<%= r.id %>/room" class="btn-change text-center" style="text-decoration:none;">Change room</a>
-                    <!-- POST + confirm so a stray click / refresh can't delete a booking -->
-                    <form action="/reservations/<%= r.id %>/cancel" method="POST" onsubmit="return confirm('Cancel this reservation?');">
-                        <button type="submit" class="btn-cancel w-100">Cancel</button>
-                    </form>
+                    <div class="actions">
+                        <a href="/reservations/<%= r.id %>/room" class="btn-change">Change room</a>
+                        <form action="/reservations/<%= r.id %>/cancel" method="POST" onsubmit="return confirm('Cancel this reservation?');">
+                            <button type="submit" class="btn-cancel">Cancel</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         <% }) %>
+        </div>
+        <p class="no-match" id="noMatch">No reservations match your search.</p>
+    <% } else { %>
+        <div class="empty">
+            <h4 style="font-weight:800;">No stays booked yet</h4>
+            <p class="mb-3">When you reserve a room it'll show up here.</p>
+            <a href="/hotels" class="btn-change" style="display:inline-block;">Browse hotels</a>
+        </div>
     <% } %>
 </div>
 
 <script>
-    // client-side filter — instant, no page reload (finding information requirement)
     const filter = document.getElementById('filter');
+    const sort = document.getElementById('sort');
+    const list = document.getElementById('resList');
+    const noMatch = document.getElementById('noMatch');
+
     if (filter) {
         filter.addEventListener('input', () => {
             const term = filter.value.toLowerCase();
-            document.querySelectorAll('.res-card').forEach(card => {
-                card.style.display = card.dataset.name.includes(term) ? '' : 'none';
+            let shown = 0;
+            list.querySelectorAll('.res-card').forEach(c => {
+                const match = c.dataset.name.includes(term);
+                c.style.display = match ? '' : 'none';
+                if (match) shown++;
             });
+            noMatch.style.display = shown === 0 ? 'block' : 'none';
+        });
+
+        sort.addEventListener('change', () => {
+            const cards = Array.from(list.querySelectorAll('.res-card'));
+            cards.sort((a, b) => {
+                if (sort.value === 'price') return b.dataset.total - a.dataset.total;
+                if (sort.value === 'name')  return a.dataset.name.localeCompare(b.dataset.name);
+                return a.dataset.date - b.dataset.date; // date
+            });
+            cards.forEach(c => list.appendChild(c)); // re-append in new order
         });
     }
 </script>
