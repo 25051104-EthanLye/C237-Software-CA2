@@ -153,6 +153,12 @@ app.post('/login', (req, res) => {
         if (err) throw err;
         
         if (results.length > 0) {
+            // ARVIN: block suspended accounts from logging in
+            if (results[0].account_status === 'suspended') {
+                req.flash('error', 'Your account has been suspended. Please contact support.');
+                return req.session.save(() => res.redirect(targetUrl));
+            }
+            
             req.session.user = results[0]; 
             req.session.save(() => res.redirect(targetUrl)); 
         } else {
@@ -1385,7 +1391,7 @@ app.get('/admin/users', isAdmin, (req, res) => {
 
 // BAN: block a user from logging in
 app.post('/admin/users/ban/:id', isAdmin, (req, res) => {
-    const sql = "UPDATE users SET account_status = 'banned' WHERE id = ?";
+    const sql = "UPDATE users SET account_status = 'suspended' WHERE id = ?";
 
     db.query(sql, [req.params.id], (err) => {
         if (err) { console.log(err); return res.send("Database Error"); }

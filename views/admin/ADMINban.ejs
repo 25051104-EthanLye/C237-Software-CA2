@@ -59,8 +59,8 @@
                                         <td><%= u.email %></td>
                                         <td><span class="badge bg-secondary"><%= u.role %></span></td>
                                         <td>
-                                            <% if (u.account_status === 'banned') { %>
-                                                <span class="badge bg-danger">Banned</span>
+                                            <% if (u.account_status === 'suspended') { %>
+                                                <span class="badge bg-danger">Suspended</span>
                                             <% } else { %>
                                                 <span class="badge bg-success">Active</span>
                                             <% } %>
@@ -68,7 +68,7 @@
                                         <td class="text-end">
                                             <% if (u.role === 'admin') { %>
                                                 <span class="text-muted small">—</span>
-                                            <% } else if (u.account_status === 'banned') { %>
+                                            <% } else if (u.account_status === 'suspended') { %>
                                                 <form action="/admin/users/unban/<%= u.id %>" method="POST" class="d-inline">
                                                     <button type="submit" class="btn btn-success btn-sm">Unban</button>
                                                 </form>
