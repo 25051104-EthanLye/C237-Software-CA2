@@ -110,7 +110,7 @@
                                 <div class="item-title">Flight <%= flight.flight_number %></div>
                                 <div class="item-subtitle">To <%= flight.destination %> • <%= flight.duration %></div>
                                 <div class="item-price">$<%= Number(flight.price).toFixed(2) %></div>
-                                <a href="#" class="book-btn" onclick="alert('Proceeding to booking...')">Select Flight</a>
+                                <a href="/flights/book/<%= flight.id %>" class="book-btn">Select Flight</a>
                             </div>
                         </div>
                     <% }) %>
