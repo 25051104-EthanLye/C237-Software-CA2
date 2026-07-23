@@ -254,7 +254,8 @@
                     <div style="display: flex; align-items: center; flex: 3; min-width: 320px;">
                         <div class="custom-input-wrapper" style="flex: 1;">
                             <label>From</label>
-                            <input type="text" name="from" id="flightFrom" placeholder="City or Airport">
+                            <input type="text" name="from" id="flightFrom" placeholder="City or Airport" autocomplete="off">
+                            <div id="homeSuggestionsFrom" class="suggestions-box" aria-hidden="true"></div>
                         </div>
                         <button type="button" id="swapBtn" class="swap-btn" onclick="swapLocations()">⇄</button>
                         <div class="custom-input-wrapper" style="flex: 1;">
@@ -498,10 +499,8 @@
             }
         }
 
-        // 3. HOMEPAGE AUTOCOMPLETE
-        (function(){
-            const input = document.getElementById('flightTo');
-            const box = document.getElementById('homeSuggestions');
+        // 3. HOMEPAGE AUTOCOMPLETE (shared by From and To)
+        function setupHomeAutocomplete(input, box){
             let timeout = null;
 
             function render(items){
@@ -532,8 +531,34 @@
             document.addEventListener('click', (ev)=>{
                 if(box && !box.contains(ev.target) && ev.target !== input){ box.style.display='none'; box.setAttribute('aria-hidden','true'); }
             });
+        }
+
+        setupHomeAutocomplete(document.getElementById('flightTo'), document.getElementById('homeSuggestions'));
+        setupHomeAutocomplete(document.getElementById('flightFrom'), document.getElementById('homeSuggestionsFrom'));
+
+        // 4. DEPARTURE / RETURN DATE VALIDATION
+        (function(){
+            const departureInput = document.querySelector('input[name="departure_date"]');
+            const returnInput = document.querySelector('input[name="return_date"]');
+            if(!departureInput || !returnInput) return;
+
+            function syncReturnMin(){
+                if(!departureInput.value) return;
+                returnInput.min = departureInput.value;
+                if(returnInput.value && returnInput.value < departureInput.value){
+                    returnInput.value = departureInput.value;
+                }
+            }
+
+            departureInput.addEventListener('change', syncReturnMin);
+            departureInput.addEventListener('input', syncReturnMin);
+
+            returnInput.addEventListener('change', ()=>{
+                if(departureInput.value && returnInput.value && returnInput.value < departureInput.value){
+                    returnInput.value = departureInput.value;
+                }
+            });
         })();
     </script>
 </body>
 </html>
-```eof
