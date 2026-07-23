@@ -41,22 +41,20 @@
         font-size: 28px !important; font-weight: 800 !important; color: var(--teal) !important;
     }
 
-    /* --- PURE CSS HOVER DROPDOWN (Unblockable by JS errors) --- */
+    /* --- PURE CSS HOVER DROPDOWN --- */
     .profile-dropdown-wrapper { position: relative; }
     
-    /* Invisible bridge to keep hover active */
     .profile-dropdown-wrapper::after {
         content: ""; position: absolute; bottom: -15px; left: 0; width: 100%; height: 15px; background: transparent;
     }
 
     .custom-dropdown-menu {
         display: none; position: absolute; right: 0; top: 100%;
-        margin-top: 10px; background-color: var(--white); min-width: 220px;
+        margin-top: 10px; background-color: var(--white); min-width: 200px;
         box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-radius: 15px; overflow: hidden;
         z-index: 9999; border: 1px solid rgba(162, 191, 206, 0.2);
     }
 
-    /* Show on hover */
     .profile-dropdown-wrapper:hover .custom-dropdown-menu { 
         display: block; animation: dropFade 0.2s ease-out forwards; 
     }
@@ -113,7 +111,6 @@
             
             <div class="d-flex align-items-center justify-content-center gap-3">
                 <% if (activeUser) { %>
-                    <!-- FIX 1: Restored the pure CSS wrapper, removed Bootstrap JS click interceptors -->
                     <div class="profile-dropdown-wrapper">
                         <div class="profile-btn">
                             <% if (activeUser.profile_picture) { %>
@@ -124,7 +121,6 @@
                             <span class="profile-name"><%= activeUser.username %></span>
                         </div>
                         
-                        <!-- FIX 2: Re-added the Admin check inside the menu! -->
                         <div class="custom-dropdown-menu">
                             <a class="custom-dropdown-item" href="/profile">👤 Profile Overview</a>
                             
@@ -145,62 +141,73 @@
     </div>
 </nav>
 
-<!-- Hidden Login Modal -->
-<div id="loginModal" class="modal-overlay">
-    <div class="modal-card">
-        <span class="close-btn" onclick="closeLoginModal()">&times;</span>
-        <h1 style="color: var(--teal); font-size: 32px; font-weight: 800; margin-bottom: 10px;">Welcome Back</h1>
-        <p style="color: #888; margin-bottom: 25px;">Sign in to continue your journey.</p>
+<!-- ==============================================================
+     LOGIN MODAL (Only rendered if NOT logged in)
+     ============================================================== -->
+<% if (!activeUser) { %>
+    <!-- Hidden Login Modal -->
+    <div id="loginModal" class="modal-overlay">
+        <div class="modal-card">
+            <span class="close-btn" onclick="closeLoginModal()">&times;</span>
+            <h1 style="color: var(--teal); font-size: 32px; font-weight: 800; margin-bottom: 10px;">Welcome Back</h1>
+            <p style="color: #888; margin-bottom: 25px;">Sign in to continue your journey.</p>
 
-        <% if (loginErrors.length > 0) { %>
-            <div style="background-color: #ffe6e6; color: #cc0000; padding: 15px; border-radius: 10px; margin-bottom: 20px; font-weight: 600; font-size: 14px;">
-                <% loginErrors.forEach(function(error) { %> <p class="mb-0"><%= error %></p> <% }); %>
-            </div>
-        <% } %>
+            <% if (loginErrors.length > 0) { %>
+                <div style="background-color: #ffe6e6; color: #cc0000; padding: 15px; border-radius: 10px; margin-bottom: 20px; font-weight: 600; font-size: 14px;">
+                    <% loginErrors.forEach(function(error) { %> <p class="mb-0"><%= error %></p> <% }); %>
+                </div>
+            <% } %>
 
-        <% if (successMsgs.length > 0) { %>
-            <div style="background-color: #e6ffed; color: #009933; padding: 15px; border-radius: 10px; margin-bottom: 20px; font-weight: 600; font-size: 14px;">
-                <% successMsgs.forEach(function(msg) { %> <p class="mb-0"><%= msg %></p> <% }); %>
-            </div>
-        <% } %>
+            <% if (successMsgs.length > 0) { %>
+                <div style="background-color: #e6ffed; color: #009933; padding: 15px; border-radius: 10px; margin-bottom: 20px; font-weight: 600; font-size: 14px;">
+                    <% successMsgs.forEach(function(msg) { %> <p class="mb-0"><%= msg %></p> <% }); %>
+                </div>
+            <% } %>
 
-        <form action="/login" method="POST" style="text-align: left;">
-            <div style="margin-bottom: 20px;">
-                <label style="display: block; font-size: 14px; color: var(--teal); font-weight: 800; margin-bottom: 8px; text-transform: uppercase;">Username</label>
-                <input type="text" name="username" placeholder="Enter your username" required style="width: 100%; padding: 14px; border: 2px solid var(--blue); border-radius: 12px; font-size: 16px; outline: none; color: var(--dark-text);">
-            </div>
-            
-            <div style="margin-bottom: 25px;">
-                <label style="display: block; font-size: 14px; color: var(--teal); font-weight: 800; margin-bottom: 8px; text-transform: uppercase;">Password</label>
-                <input type="password" name="password" placeholder="Enter your password" required style="width: 100%; padding: 14px; border: 2px solid var(--blue); border-radius: 12px; font-size: 16px; outline: none; color: var(--dark-text);">
-            </div>
-            
-            <button type="submit" class="btn-login-modal">Sign In</button>
-        </form>
+            <form action="/login" method="POST" style="text-align: left;">
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 14px; color: var(--teal); font-weight: 800; margin-bottom: 8px; text-transform: uppercase;">Username</label>
+                    <input type="text" name="username" placeholder="Enter your username" required style="width: 100%; padding: 14px; border: 2px solid var(--blue); border-radius: 12px; font-size: 16px; outline: none; color: var(--dark-text);">
+                </div>
+                
+                <div style="margin-bottom: 25px;">
+                    <label style="display: block; font-size: 14px; color: var(--teal); font-weight: 800; margin-bottom: 8px; text-transform: uppercase;">Password</label>
+                    <input type="password" name="password" placeholder="Enter your password" required style="width: 100%; padding: 14px; border: 2px solid var(--blue); border-radius: 12px; font-size: 16px; outline: none; color: var(--dark-text);">
+                </div>
+                
+                <button type="submit" class="btn-login-modal">Sign In</button>
+            </form>
+        </div>
     </div>
-</div>
+
+    <!-- Modal Logic Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const loginModalElement = document.getElementById('loginModal');
+
+            // Show/Hide Login
+            window.openLoginModal = function() { if (loginModalElement) loginModalElement.style.display = 'flex'; };
+            window.closeLoginModal = function() { if (loginModalElement) loginModalElement.style.display = 'none'; };
+
+            // Click off to close
+            window.onclick = function(event) {
+                if (event.target === loginModalElement) closeLoginModal();
+            };
+
+            // Decides if the modal should automatically pop open based on server messages
+            const shouldOpenModal = <%= (loginErrors.length > 0 || successMsgs.length > 0) ? 'true' : 'false' %>;
+            if (shouldOpenModal) {
+                setTimeout(() => { openLoginModal(); }, 100);
+            }
+        });
+    </script>
+<% } else { %>
+    <!-- Empty fallback functions to prevent JS errors if user is logged in -->
+    <script>
+        window.openLoginModal = function() {};
+        window.closeLoginModal = function() {};
+    </script>
+<% } %>
 
 <!-- Load Bootstrap JS to enable Mobile Menu to function -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-<!-- Modal Logic Script -->
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const loginModalElement = document.getElementById('loginModal');
-
-        // Show/Hide Login
-        window.openLoginModal = function() { if (loginModalElement) loginModalElement.style.display = 'flex'; };
-        window.closeLoginModal = function() { if (loginModalElement) loginModalElement.style.display = 'none'; };
-
-        // Click off to close
-        window.onclick = function(event) {
-            if (event.target === loginModalElement) closeLoginModal();
-        };
-
-        // Decides if the modal should automatically pop open based on server messages
-        const shouldOpenModal = <%= (loginErrors.length > 0 || successMsgs.length > 0) ? 'true' : 'false' %>;
-        if (shouldOpenModal) {
-            setTimeout(() => { openLoginModal(); }, 100);
-        }
-    });
-</script>
