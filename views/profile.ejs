@@ -37,6 +37,9 @@
         box-shadow: 0 10px 25px rgba(153, 189, 188, 0.2);
         border: 1px solid rgba(162, 191, 206, 0.3);
         height: fit-content;
+        display: flex;
+        flex-direction: column;
+        align-items: center; /* Center children horizontally */
     }
 
     .profile-greeting {
@@ -105,10 +108,31 @@
         cursor: pointer;
         transition: all 0.3s;
         margin-top: 20px;
+        width: fit-content;
     }
 
     .btn-delete-pic:hover {
         background-color: #ffe6e6;
+    }
+    
+    /* Log Out Button Styling */
+    .btn-logout {
+        background-color: #cc0000;
+        color: var(--white);
+        padding: 10px 20px;
+        border: none;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 800;
+        cursor: pointer;
+        text-decoration: none; /* For standard anchor tags */
+        transition: opacity 0.3s;
+        margin-top: 15px;
+        width: fit-content;
+    }
+
+    .btn-logout:hover {
+        opacity: 0.8;
     }
 
     /* --- Main Content: Forms & Actions --- */
@@ -254,14 +278,17 @@
         <h1 class="profile-greeting">Welcome back,<br><%= userData.username %>!</h1>
         <p class="profile-subtext">Ready for your next relaxing getaway?</p>
         
+        <!-- Log Out Button -->
+        <a href="/logout" class="btn-logout">Sign Out</a>
+
         <!-- Display Success or Error Messages -->
         <% if (messages.success) { %>
-            <div style="color: #009933; background: #e6ffed; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 14px; margin-bottom: 15px;">
+            <div style="color: #009933; background: #e6ffed; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 14px; margin-bottom: 15px; margin-top: 15px;">
                 <%= messages.success %>
             </div>
         <% } %>
         <% if (messages.error) { %>
-            <div style="color: #cc0000; background: #ffe6e6; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 14px; margin-bottom: 15px;">
+            <div style="color: #cc0000; background: #ffe6e6; padding: 10px; border-radius: 8px; font-weight: bold; font-size: 14px; margin-bottom: 15px; margin-top: 15px;">
                 <%= messages.error %>
             </div>
         <% } %>
