@@ -23,8 +23,10 @@
                 <div class="card-body p-4">
 
                     <div class="mb-2 fs-5">
-                        <strong>Flight:</strong> <%= booking.flight_number %> to <%= booking.destination %>
-                    </div>
+                        <strong>Flight:</strong>
+                        <%= booking.flight_number %> —
+                        <%= booking.departure_location %> → <%= booking.destination %>
+                </div>
 
                     <!-- CRITICAL FIX: The data- attributes below allow JS to parse the duration -->
                     <div class="mb-4 booking-date-time-container" 
