@@ -284,7 +284,7 @@ app.get('/flights', (req, res) => {
     }
 
     if (req.query.origin) {
-        where.push('origin LIKE ?');
+        where.push('departure_location LIKE ?');
         params.push('%' + req.query.origin + '%');
     }
 
@@ -304,13 +304,6 @@ app.get('/flights', (req, res) => {
         console.log('Flights filter date:', qdate);
     }
 
-    if (req.query.direct) {
-        // assume direct is sent as '1' or '0' or 'true'/'false'
-        const val = (req.query.direct === '1' || req.query.direct === 'true') ? 1 : 0;
-        where.push('direct = ?');
-        params.push(val);
-    }
-
     let sql = 'SELECT * FROM flights';
     if (where.length) sql += ' WHERE ' + where.join(' AND ');
     sql += ' ORDER BY departure_date ASC, departure_time ASC';
@@ -318,8 +311,9 @@ app.get('/flights', (req, res) => {
     db.query(sql, params, (err, results) => {
 
         if (err) {
+            console.log('FLIGHTS QUERY ERROR');
             console.log(err);
-            return res.send("Database Error");
+            return res.send(err.message || 'Database Error');
         }
 
         res.render('flights', {
@@ -414,14 +408,8 @@ app.get('/flights/book/:flightId', isAuthenticated, (req, res) => {
     }
 
     const parsedChildren = Number.parseInt(requestedChildren, 10);
-    if (Number.isInteger(parsedChildren) && parsedChildren >= 0 && parsedChildren <= 9) {
+    if (Number.isInteger(parsedChildren) && parsedChildren >= 0 && parsedChildren <= 8) {
         children = parsedChildren;
-    }
-
-    const totalTravellers = adults + children;
-    if (totalTravellers > 9) {
-        const excess = totalTravellers - 9;
-        children = Math.max(0, children - excess);
     }
 
     const sql = `SELECT * FROM flights WHERE id = ?`;
@@ -470,10 +458,10 @@ app.post('/flights/book/:flightId', isAuthenticated, (req, res) => {
     }
 
     const parsedChildren = Number.parseInt(children, 10);
-    if (Number.isInteger(parsedChildren) && parsedChildren >= 0 && parsedChildren <= 9) {
+    if (Number.isInteger(parsedChildren) && parsedChildren >= 0 && parsedChildren <= 8) {
         childrenCount = parsedChildren;
     } else {
-        validationError = 'Children must be a whole number between 0 and 9.';
+        validationError = 'Children must be a whole number between 0 and 8.';
     }
 
     const validSeatPreferences = ['Window', 'Middle', 'Aisle'];
@@ -489,13 +477,12 @@ app.post('/flights/book/:flightId', isAuthenticated, (req, res) => {
 
     const totalTravellers = adultsCount + childrenCount;
     if (totalTravellers > 9) {
-        const excess = totalTravellers - 9;
-        childrenCount = Math.max(0, childrenCount - excess);
+        validationError = 'The total number of travellers cannot exceed 9.';
     }
 
     if (validationError) {
         req.flash('error', validationError);
-        return res.redirect('/flights/book/' + flightId + '?adults=' + adultsCount + '&children=' + childrenCount);
+        return res.redirect('/flights/book/' + flightId + '?adults=' + adults + '&children=' + children);
     }
 
     const sql = `

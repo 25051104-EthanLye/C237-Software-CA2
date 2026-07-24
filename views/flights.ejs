@@ -71,7 +71,7 @@
                     </div>
 
                     <% if (user) { %>
-                        <a href="/flights/book/<%= flight.id %>?adults=<%= typeof filters !== 'undefined' && filters.adults ? filters.adults : 1 %>&children=<%= typeof filters !== 'undefined' && filters.children ? filters.children : 0 %>" class="btn btn-primary w-100 rounded-pill">Book Flight</a>
+                        <a href="/flights/book/<%= flight.id %>" class="btn btn-primary w-100 rounded-pill">Book Flight</a>
                     <% } else { %>
                         <button class="btn btn-secondary w-100 rounded-pill" onclick="openLoginModal()">Sign In to Book</button>
                     <% } %>
