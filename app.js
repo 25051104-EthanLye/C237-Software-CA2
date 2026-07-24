@@ -459,7 +459,7 @@ app.get('/bookings', isAuthenticated, (req, res) => {
 
     const sql = `
         SELECT flight_bookings.*, flights.flight_number, flights.destination,
-               flights.departure_date, flights.departure_time, flights.arrival_time, flights.duration, flights.price
+               flights.departure_date, flights.departure_time, flights.duration, flights.price
         FROM flight_bookings
         JOIN flights ON flight_bookings.flight_id = flights.id
         WHERE flight_bookings.user_id = ?
@@ -488,7 +488,7 @@ app.get('/bookings/:id/seat', isAuthenticated, (req, res) => {
 
     const sql = `
         SELECT flight_bookings.*, flights.flight_number, flights.destination,
-               flights.departure_date, flights.departure_time, flights.arrival_time
+               flights.departure_date, flights.departure_time, flights.duration, flights.price
         FROM flight_bookings
         JOIN flights ON flight_bookings.flight_id = flights.id
         WHERE flight_bookings.id = ? AND flight_bookings.user_id = ?
