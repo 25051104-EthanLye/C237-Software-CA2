@@ -165,15 +165,6 @@
         }
         .traveler-input:focus { border-bottom-color: var(--teal); }
 
-        /* The Swap Button */
-        .swap-btn {
-            background: #F0F4F8; border: 2px solid #E8EEEE; border-radius: 50%;
-            width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; color: var(--teal); font-size: 20px; font-weight: bold;
-            margin: 0 -15px; z-index: 5; transition: transform 0.4s ease, background 0.3s ease, color 0.3s ease;
-        }
-        .swap-btn:hover { background: var(--teal); color: var(--white); border-color: var(--teal); }
-
         /* --- AUTOCOMPLETE & GRIDS --- */
         .suggestions-box {
             position: absolute; background: #fff; width: 100%; min-width: 250px; z-index: 999;
@@ -252,18 +243,17 @@
                 </div>
                 
                 <div style="display: flex; gap: 15px; align-items: stretch; flex-wrap: wrap;">
-                    <div style="display: flex; align-items: center; flex: 3; min-width: 320px;">
-                        <div class="custom-input-wrapper" style="flex: 1;">
-                            <label>From</label>
-                            <input type="text" name="from" id="flightFrom" placeholder="City or Airport" autocomplete="off">
-                            <div id="homeSuggestionsFrom" class="suggestions-box" aria-hidden="true"></div>
-                        </div>
-                        <button type="button" id="swapBtn" class="swap-btn" onclick="swapLocations()">⇄</button>
-                        <div class="custom-input-wrapper" style="flex: 1;">
-                            <label>To</label>
-                            <input type="text" name="to" id="flightTo" placeholder="Where to?" autocomplete="off" required>
-                            <div id="homeSuggestions" class="suggestions-box" aria-hidden="true"></div>
-                        </div>
+                    <input type="hidden" name="from" value="Singapore">
+
+                    <div class="custom-input-wrapper" style="flex: 3; min-width: 320px;">
+                        <label>Destination</label>
+                        <input type="text"
+                               name="to"
+                               id="flightTo"
+                               placeholder="Where would you like to go?"
+                               autocomplete="off"
+                               required>
+                        <div id="homeSuggestions" class="suggestions-box" aria-hidden="true"></div>
                     </div>
 
                     <div class="custom-input-wrapper" style="flex: 1.2; min-width: 150px;">
@@ -475,19 +465,6 @@
             }
         }
 
-        let swapRotation = 0;
-        function swapLocations() {
-            const fromInput = document.getElementById('flightFrom');
-            const toInput = document.getElementById('flightTo');
-            
-            const temp = fromInput.value;
-            fromInput.value = toInput.value;
-            toInput.value = temp;
-
-            swapRotation += 180;
-            document.getElementById('swapBtn').style.transform = `rotate(${swapRotation}deg)`;
-        }
-
         function toggleReturnDate(isReturn) {
             const returnContainer = document.getElementById('returnDateContainer');
             const returnInput = document.querySelector('input[name="return_date"]');
@@ -501,7 +478,7 @@
             }
         }
 
-        // 3. HOMEPAGE AUTOCOMPLETE (shared by From and To)
+        // 3. HOMEPAGE DESTINATION AUTOCOMPLETE
         function setupHomeAutocomplete(input, box){
             let timeout = null;
 
@@ -536,7 +513,6 @@
         }
 
         setupHomeAutocomplete(document.getElementById('flightTo'), document.getElementById('homeSuggestions'));
-        setupHomeAutocomplete(document.getElementById('flightFrom'), document.getElementById('homeSuggestionsFrom'));
 
         // 4. DEPARTURE / RETURN DATE VALIDATION
         (function(){
