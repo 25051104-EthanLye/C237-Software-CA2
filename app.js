@@ -649,7 +649,7 @@ app.post('/hotels/book/:hotelId', isAuthenticated, (req, res) => {
 
 // H4. VIEW RESERVATIONS (Read) — joined with hotels for name/location/price
 app.get('/reservations', isAuthenticated, (req, res) => {
-    const sql = `SELECT hotel_reservations.*, hotels.name, hotels.location, hotels.price_per_night
+    const sql = `SELECT hotel_reservations.*, hotels.name, hotels.location, hotels.price_per_night, hotels.image
                  FROM hotel_reservations
                  JOIN hotels ON hotel_reservations.hotel_id = hotels.id
                  WHERE hotel_reservations.user_id = ?
@@ -662,7 +662,7 @@ app.get('/reservations', isAuthenticated, (req, res) => {
 
 // H5. CHANGE ROOM — SHOW FORM (Update)
 app.get('/reservations/:id/room', isAuthenticated, (req, res) => {
-    const sql = `SELECT hotel_reservations.*, hotels.name, hotels.location
+    const sql = `SELECT hotel_reservations.*, hotels.name, hotels.location, hotels.image
                  FROM hotel_reservations
                  JOIN hotels ON hotel_reservations.hotel_id = hotels.id
                  WHERE hotel_reservations.id = ? AND hotel_reservations.user_id = ?`;
