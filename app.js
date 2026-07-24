@@ -47,6 +47,9 @@ const upload = multer({ storage: storage });
 // --- GLOBAL VARIABLES MIDDLEWARE ---
 app.use((req, res, next) => {
     res.locals.user = req.session.user || null;
+    res.locals.userData = req.session.user || null; 
+    // FIX: Global safety net so "messages is not defined" NEVER crashes the app again
+    res.locals.messages = {}; 
     next();
 });
 
@@ -326,25 +329,20 @@ app.get('/flights', (req, res) => {
 
 });
 
-// 7b. HOMEPAGE SEARCH WIDGET -> redirects into /flights for flight searches
-// and renders the search results page for hotel searches.
+// 7b. UNIFIED SEARCH WIDGET ROUTE
+// Renders the searchResults.ejs directly for both Flights and Hotels
 app.get('/search', (req, res) => {
     const type = req.query.type || 'flight';
+    const destination = req.query.to || '';
 
     if (type === 'hotel') {
-        const destination = req.query.to || '';
-        let hotelSql = 'SELECT * FROM hotels WHERE 1=1';
-        const hotelParams = [];
+        const hotelSql = 'SELECT * FROM hotels WHERE name LIKE ? OR location LIKE ?';
+        const searchParam = `%${destination}%`;
 
-        if (destination) {
-            hotelSql += ' AND location LIKE ?';
-            hotelParams.push(`%${destination}%`);
-        }
-
-        return db.query(hotelSql, hotelParams, (err, hotels) => {
+        db.query(hotelSql, [searchParam, searchParam], (err, hotels) => {
             if (err) { console.log(err); return res.send('Database Error'); }
 
-            return res.render('searchResults', {
+            res.render('searchResults', {
                 searchType: 'hotel',
                 searchDestination: destination || 'All Destinations',
                 flights: [],
@@ -353,17 +351,22 @@ app.get('/search', (req, res) => {
                 children: req.query.children || 0
             });
         });
+    } else {
+        const flightSql = 'SELECT * FROM flights WHERE destination LIKE ?';
+
+        db.query(flightSql, [`%${destination}%`], (err, flights) => {
+            if (err) { console.log(err); return res.send('Database Error'); }
+
+            res.render('searchResults', {
+                searchType: 'flight',
+                searchDestination: destination || 'All Destinations',
+                flights: flights,
+                hotels: [],
+                adults: req.query.adults || 1,
+                children: req.query.children || 0
+            });
+        });
     }
-
-    const params = new URLSearchParams();
-    if (req.query.to) params.set('destination', req.query.to);
-    if (req.query.departure_date) params.set('date', req.query.departure_date);
-    if (req.query.adults) params.set('adults', req.query.adults);
-    if (req.query.children) params.set('children', req.query.children);
-    if (req.query.from) params.set('origin', req.query.from);
-    if (req.query.return_date) params.set('return_date', req.query.return_date);
-
-    return res.redirect('/flights' + (params.toString() ? ('?' + params.toString()) : ''));
 });
 
 // 7c. CITY AUTOCOMPLETE - returns destinations from the flights table matching what's typed
@@ -1346,21 +1349,22 @@ app.post('/admin/hotels/edit/:id', isAdmin, upload.single('image'), (req, res) =
         const imageUri = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
         const sqlWithImage = 'UPDATE hotels SET name = ?, location = ?, price_per_night = ?, image = ? WHERE id = ?';
 
-        return db.query(sqlWithImage, [name, location, price_per_night, imageUri, req.params.id], (err) => {
+        // FIX 3: Removed 'return' keyword before db.query to stop terminal crash
+        db.query(sqlWithImage, [name, location, price_per_night, imageUri, req.params.id], (err) => {
             if (err) { console.log(err); return res.send("Database Error"); }
             req.flash('success', `Hotel "${name}" updated.`);
             res.redirect('/admin/hotels');
         });
+    } else {
+        const sql = 'UPDATE hotels SET name = ?, location = ?, price_per_night = ? WHERE id = ?';
+
+        db.query(sql, [name, location, price_per_night, req.params.id], (err) => {
+            if (err) { console.log(err); return res.send("Database Error"); }
+
+            req.flash('success', `Hotel "${name}" updated.`);
+            res.redirect('/admin/hotels');
+        });
     }
-
-    const sql = 'UPDATE hotels SET name = ?, location = ?, price_per_night = ? WHERE id = ?';
-
-    db.query(sql, [name, location, price_per_night, req.params.id], (err) => {
-        if (err) { console.log(err); return res.send("Database Error"); }
-
-        req.flash('success', `Hotel "${name}" updated.`);
-        res.redirect('/admin/hotels');
-    });
 });
 
 // ----- FLIGHT INVENTORY -----

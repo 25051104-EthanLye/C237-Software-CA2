@@ -45,7 +45,7 @@
             background-color: var(--white); border-radius: 20px; overflow: hidden;
             box-shadow: 0 5px 20px rgba(162, 191, 206, 0.15); transition: transform 0.3s ease;
             border: 1px solid rgba(162, 191, 206, 0.2);
-            display: flex; flex-direction: column; height: 100%;
+            display: flex; flex-direction: column; height: 100%; position: relative;
         }
         .item-card:hover { transform: translateY(-8px); box-shadow: 0 8px 25px rgba(162, 191, 206, 0.3); }
         .item-img { height: 180px; width: 100%; background-color: var(--blue); background-size: cover; background-position: center; }
@@ -83,7 +83,8 @@
                             <div class="item-img" style="background-image: url('https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=600&q=80');"></div>
                             <div class="item-details">
                                 <div class="item-title">Flight <%= flight.flight_number %></div>
-                                <div class="item-subtitle">To <%= flight.destination %> • <%= flight.duration %></div>
+                                <!-- FIX: Pulls actual location data from the database -->
+                                <div class="item-subtitle"><%= flight.departure_location || 'Origin' %> to <%= flight.destination %> • <%= flight.duration %></div>
                                 <div class="item-price">$<%= Number(flight.price).toFixed(2) %></div>
                                 <a href="/flights/book/<%= flight.id %>?adults=<%= typeof adults !== 'undefined' ? adults : 1 %>&children=<%= typeof children !== 'undefined' ? children : 0 %>" class="book-btn">Select Flight</a>
                             </div>
@@ -95,19 +96,28 @@
 
     <!-- MAIN RESULTS: HOTELS -->
     <% } else { %>
-        <section class="data-section">
+        <section class="data-section bg-light">
             <div class="grid-container">
                 <% if (hotels.length === 0) { %>
                     <h3 style="color: #888; grid-column: 1 / -1; text-align: center;">No hotels found for this destination.</h3>
                 <% } else { %>
                     <% hotels.forEach(hotel => { %>
                         <div class="item-card">
-                            <div class="item-img" style="background-image: url('https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=600&q=80');"></div>
+                            <!-- FIX: Integrated dynamic hotel image rendering perfectly matching index.ejs -->
+                            <% if (hotel.image) { %>
+                                <div class="item-img" style="background-image: url('<%= hotel.image %>'); position:relative;">
+                            <% } else { %>
+                                <div class="item-img" style="background:linear-gradient(135deg,#cfe0e0,#ecdccb); display:flex; align-items:center; justify-content:center; position:relative;">
+                                    <span style="font-size:48px; opacity:.7;">🏨</span>
+                            <% } %>
+                                <span style="position:absolute; top:12px; right:12px; background:rgba(255,255,255,0.92); color:var(--teal); font-weight:800; font-size:14px; padding:6px 12px; border-radius:999px; box-shadow:0 2px 8px rgba(0,0,0,0.12);">$<%= Number(hotel.price_per_night).toFixed(0) %><span style="color:#888; font-weight:600;">/night</span></span>
+                            </div>
+                            
                             <div class="item-details">
                                 <div class="item-title"><%= hotel.name %></div>
-                                <div class="item-subtitle"><%= hotel.location %></div>
-                                <div class="item-price">$<%= Number(hotel.price_per_night).toFixed(2) %><span style="font-size:12px; color:#888;"> /night</span></div>
-                                <a href="#" class="book-btn" onclick="alert('Proceeding to hotel...')">Reserve Room</a>
+                                <div class="item-subtitle">📍 <%= hotel.location %></div>
+                                <!-- FIX: Removed dummy alert link, properly routes to booking page -->
+                                <a href="/hotels/book/<%= hotel.id %>" class="book-btn" style="background:var(--teal); color:var(--white); border-color:var(--teal); margin-top:auto;">🛏️ Reserve Room</a>
                             </div>
                         </div>
                     <% }) %>
