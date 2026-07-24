@@ -333,16 +333,17 @@ app.get('/flights', (req, res) => {
 });
 
 // 7b. UNIFIED SEARCH WIDGET ROUTE
-// Renders the searchResults.ejs directly for both Flights and Hotels without broken redirects
+// Renders the searchResults.ejs directly for both Flights and Hotels
 app.get('/search', (req, res) => {
     const type = req.query.type || 'flight';
     const destination = req.query.to || '';
 
     if (type === 'hotel') {
-        const hotelSql = 'SELECT * FROM hotels WHERE location LIKE ?';
+        // FIX: Search BOTH the hotel 'name' and the 'location' columns!
+        const hotelSql = 'SELECT * FROM hotels WHERE name LIKE ? OR location LIKE ?';
+        const searchParam = `%${destination}%`;
 
-        // FIX 1: Removed 'return' keyword before db.query to stop terminal crash
-        db.query(hotelSql, [`%${destination}%`], (err, hotels) => {
+        db.query(hotelSql, [searchParam, searchParam], (err, hotels) => {
             if (err) { console.log(err); return res.send('Database Error'); }
 
             res.render('searchResults', {
@@ -355,7 +356,6 @@ app.get('/search', (req, res) => {
             });
         });
     } else {
-        // FIX 2: Stopped redirecting to /flights so the "origin" column crash is bypassed
         const flightSql = 'SELECT * FROM flights WHERE destination LIKE ?';
 
         db.query(flightSql, [`%${destination}%`], (err, flights) => {
