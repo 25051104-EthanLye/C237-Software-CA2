@@ -96,7 +96,7 @@
                                         <td>#<%= flight.id %></td>
                                         <td><%= flight.flight_number %></td>
                                         <td>Singapore &rarr; <%= flight.destination %></td>
-                                        <td><%= flight.departure_date %> @ <%= flight.departure_time %></td>
+                                        <td><%= flight.departure_date instanceof Date ? flight.departure_date.toISOString().split('T')[0] : flight.departure_date %> @ <%= flight.departure_time %></td>
                                         <td><%= flight.duration %></td>
                                         <td>$<%= Number(flight.price).toFixed(2) %></td>
                                         <td class="text-end">
