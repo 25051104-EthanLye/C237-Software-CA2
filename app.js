@@ -1286,9 +1286,20 @@ app.get('/admin/hotels/edit/:id', isAdmin, (req, res) => {
     });
 });
 
-// EDIT (Save): update the hotel with the submitted changes
-app.post('/admin/hotels/edit/:id', isAdmin, (req, res) => {
+// EDIT (Save): update the hotel with the submitted changes (with optional new photo)
+app.post('/admin/hotels/edit/:id', isAdmin, upload.single('image'), (req, res) => {
     const { name, location, price_per_night } = req.body;
+
+    if (req.file) {
+        const imageUri = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+        const sqlWithImage = 'UPDATE hotels SET name = ?, location = ?, price_per_night = ?, image = ? WHERE id = ?';
+
+        return db.query(sqlWithImage, [name, location, price_per_night, imageUri, req.params.id], (err) => {
+            if (err) { console.log(err); return res.send("Database Error"); }
+            req.flash('success', `Hotel "${name}" updated.`);
+            res.redirect('/admin/hotels');
+        });
+    }
 
     const sql = 'UPDATE hotels SET name = ?, location = ?, price_per_night = ? WHERE id = ?';
 

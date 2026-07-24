@@ -38,7 +38,7 @@
         <div class="card shadow-sm border-0 mb-4">
             <div class="card-body">
                 <h4 class="card-title mb-3">Add New Hotel</h4>
-                <form action="/admin/hotels/add" method="POST" class="row g-3">
+                <form action="/admin/hotels/add" method="POST" enctype="multipart/form-data" class="row g-3">
                     <div class="col-md-4">
                         <label class="form-label fw-bold">Hotel Name</label>
                         <input type="text" name="name" class="form-control" placeholder="e.g. Shibuya Grand Hotel" required>
@@ -50,6 +50,10 @@
                     <div class="col-md-2">
                         <label class="form-label fw-bold">Price / Night ($)</label>
                         <input type="number" step="0.01" min="0" name="price_per_night" class="form-control" placeholder="120.00" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold">Photo</label>
+                        <input type="file" name="image" accept="image/*" class="form-control">
                     </div>
                     <div class="col-md-2 d-flex align-items-end">
                         <button type="submit" class="btn btn-brand w-100">+ Add Hotel</button>
@@ -68,18 +72,26 @@
                     <div class="table-responsive">
                         <table class="table align-middle">
                             <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Name</th>
-                                    <th>Location</th>
-                                    <th>Price / Night</th>
-                                    <th class="text-end">Action</th>
-                                </tr>
+                            <tr>
+                                <th>ID</th>
+                                <th>Photo</th>
+                                <th>Name</th>
+                                <th>Location</th>
+                                <th>Price / Night</th>
+                                <th class="text-end">Action</th>
+                            </tr>
                             </thead>
                             <tbody>
                                 <% hotels.forEach(hotel => { %>
                                     <tr>
                                         <td>#<%= hotel.id %></td>
+                                        <td>
+                                            <% if (hotel.image) { %>
+                                                <img src="<%= hotel.image %>" alt="<%= hotel.name %>" style="width:60px; height:60px; object-fit:cover; border-radius:8px;">
+                                            <% } else { %>
+                                                <span class="text-muted small">No photo</span>
+                                            <% } %>
+                                        </td>
                                         <td><%= hotel.name %></td>
                                         <td><%= hotel.location %></td>
                                         <td>$<%= Number(hotel.price_per_night).toFixed(2) %></td>
