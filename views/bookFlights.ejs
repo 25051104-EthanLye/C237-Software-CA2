@@ -35,6 +35,24 @@
         <form action="/flights/book/<%= flight.id %>" method="POST">
 
             <div class="mb-3">
+                <label class="form-label">Adults</label>
+                <input type="number" name="adults" min="1" max="9" value="<%= typeof adults !== 'undefined' ? adults : 1 %>" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Children</label>
+                <input type="number" name="children" min="0" max="9" value="<%= typeof children !== 'undefined' ? children : 0 %>" class="form-control" required>
+            </div>
+
+            <div class="card bg-light p-3 mb-3">
+                <div><strong>Adults:</strong> <span id="adultsCount"><%= typeof adults !== 'undefined' ? adults : 1 %></span></div>
+                <div><strong>Children:</strong> <span id="childrenCount"><%= typeof children !== 'undefined' ? children : 0 %></span></div>
+                <div><strong>Total travellers:</strong> <span id="totalTravellers"><%= (typeof adults !== 'undefined' ? adults : 1) + (typeof children !== 'undefined' ? children : 0) %></span></div>
+                <div><strong>Price per traveller:</strong> $<span id="pricePerTraveller"><%= Number(flight.price).toFixed(2) %></span></div>
+                <div><strong>Estimated total price:</strong> $<span id="estimatedTotal"><%= (Number(flight.price) * ((typeof adults !== 'undefined' ? adults : 1) + (typeof children !== 'undefined' ? children : 0))).toFixed(2) %></span></div>
+            </div>
+
+            <div class="mb-3">
                 <label class="form-label">Seat Preference</label>
                 <select name="seat_preference" class="form-select" required>
                     <option value="">-- Select --</option>
@@ -43,6 +61,18 @@
                     <option value="Aisle">Aisle</option>
                 </select>
             </div>
+
+            <div class="mb-3">
+                <label class="form-label">Preferred Row</label>
+                <select name="row_preference" class="form-select" required>
+                    <option value="">-- Select --</option>
+                    <option value="Front">Front</option>
+                    <option value="Middle" selected>Middle</option>
+                    <option value="Back">Back</option>
+                </select>
+            </div>
+
+            <div class="form-text mb-3">Seat and row preferences are subject to availability.</div>
 
             <button class="btn btn-primary">Confirm Booking</button>
             <a href="/flights" class="btn btn-secondary">Cancel</a>
@@ -92,6 +122,33 @@ document.addEventListener('DOMContentLoaded', ()=>{
             if(computed) span.textContent = computed;
         }
     }
+
+    const adultsInput = document.querySelector('input[name="adults"]');
+    const childrenInput = document.querySelector('input[name="children"]');
+    const adultsCount = document.getElementById('adultsCount');
+    const childrenCount = document.getElementById('childrenCount');
+    const totalTravellers = document.getElementById('totalTravellers');
+    const estimatedTotal = document.getElementById('estimatedTotal');
+    const pricePerTraveller = document.getElementById('pricePerTraveller');
+
+    const price = Number(<%= Number(flight.price) %>);
+
+    function updateSummary() {
+        const adultsValue = Number.parseInt(adultsInput.value, 10) || 1;
+        const childrenValue = Number.parseInt(childrenInput.value, 10) || 0;
+        const total = adultsValue + childrenValue;
+        const totalPrice = price * total;
+
+        adultsCount.textContent = adultsValue;
+        childrenCount.textContent = childrenValue;
+        totalTravellers.textContent = total;
+        estimatedTotal.textContent = totalPrice.toFixed(2);
+        pricePerTraveller.textContent = price.toFixed(2);
+    }
+
+    adultsInput.addEventListener('input', updateSummary);
+    childrenInput.addEventListener('input', updateSummary);
+    updateSummary();
 });
 </script>
 

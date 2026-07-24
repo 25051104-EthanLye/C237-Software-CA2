@@ -265,44 +265,7 @@ app.post('/profile/delete-picture', isAuthenticated, (req, res) => {
     });
 });
 
-// --- NEW: GLOBAL SEARCH ROUTE ---
-app.get('/search', (req, res) => {
-    const type = req.query.type || 'flight';
-    const destination = req.query.to || ''; // What the user searched for
-    
-    // Query 1: Find matching flights
-    let flightSql = 'SELECT * FROM flights WHERE 1=1';
-    let flightParams = [];
-    if (destination) {
-        flightSql += ' AND destination LIKE ?';
-        flightParams.push(`%${destination}%`);
-    }
-
-    // Query 2: Find matching hotels
-    let hotelSql = 'SELECT * FROM hotels WHERE 1=1';
-    let hotelParams = [];
-    if (destination) {
-        hotelSql += ' AND location LIKE ?';
-        hotelParams.push(`%${destination}%`);
-    }
-
-    // Execute both queries simultaneously
-    db.query(flightSql, flightParams, (err, flights) => {
-        if (err) { console.log(err); return res.send("Database Error"); }
-        
-        db.query(hotelSql, hotelParams, (err, hotels) => {
-            if (err) { console.log(err); return res.send("Database Error"); }
-            
-            // Send all the data to our new Search Results page!
-            res.render('searchResults', {
-                searchType: type,
-                searchDestination: destination || 'All Destinations',
-                flights: flights,
-                hotels: hotels
-            });
-        });
-    });
-});
+// Search handling is consolidated later in this file.
 // ------------------------------------------------------- Ethan's Path end
 
 //--------------------------------------------------------Shao Feng's Path start
@@ -369,13 +332,44 @@ app.get('/flights', (req, res) => {
 
 });
 
-// 7b. HOMEPAGE SEARCH WIDGET -> redirects into /flights with a destination filter
+// 7b. HOMEPAGE SEARCH WIDGET -> redirects into /flights for flight searches
+// and renders the search results page for hotel searches.
 app.get('/search', (req, res) => {
+    const type = req.query.type || 'flight';
+
+    if (type === 'hotel') {
+        const destination = req.query.to || '';
+        let hotelSql = 'SELECT * FROM hotels WHERE 1=1';
+        const hotelParams = [];
+
+        if (destination) {
+            hotelSql += ' AND location LIKE ?';
+            hotelParams.push(`%${destination}%`);
+        }
+
+        return db.query(hotelSql, hotelParams, (err, hotels) => {
+            if (err) { console.log(err); return res.send('Database Error'); }
+
+            return res.render('searchResults', {
+                searchType: 'hotel',
+                searchDestination: destination || 'All Destinations',
+                flights: [],
+                hotels: hotels,
+                adults: req.query.adults || 1,
+                children: req.query.children || 0
+            });
+        });
+    }
+
     const params = new URLSearchParams();
-    ['destination','date','adults','children','travel_class','origin','return_date','direct']
-        .forEach(key => { if (req.query[key]) params.set(key, req.query[key]); });
-    const qs = params.toString();
-    res.redirect('/flights' + (qs ? ('?' + qs) : ''));
+    if (req.query.to) params.set('destination', req.query.to);
+    if (req.query.departure_date) params.set('date', req.query.departure_date);
+    if (req.query.adults) params.set('adults', req.query.adults);
+    if (req.query.children) params.set('children', req.query.children);
+    if (req.query.from) params.set('origin', req.query.from);
+    if (req.query.return_date) params.set('return_date', req.query.return_date);
+
+    return res.redirect('/flights' + (params.toString() ? ('?' + params.toString()) : ''));
 });
 
 // 7c. CITY AUTOCOMPLETE - returns destinations from the flights table matching what's typed
@@ -408,6 +402,27 @@ app.get('/flights/search-cities', (req, res) => {
 app.get('/flights/book/:flightId', isAuthenticated, (req, res) => {
 
     const flightId = req.params.flightId;
+    const requestedAdults = req.query.adults;
+    const requestedChildren = req.query.children;
+
+    let adults = 1;
+    let children = 0;
+
+    const parsedAdults = Number.parseInt(requestedAdults, 10);
+    if (Number.isInteger(parsedAdults) && parsedAdults >= 1 && parsedAdults <= 9) {
+        adults = parsedAdults;
+    }
+
+    const parsedChildren = Number.parseInt(requestedChildren, 10);
+    if (Number.isInteger(parsedChildren) && parsedChildren >= 0 && parsedChildren <= 9) {
+        children = parsedChildren;
+    }
+
+    const totalTravellers = adults + children;
+    if (totalTravellers > 9) {
+        const excess = totalTravellers - 9;
+        children = Math.max(0, children - excess);
+    }
 
     const sql = `SELECT * FROM flights WHERE id = ?`;
 
@@ -423,7 +438,9 @@ app.get('/flights/book/:flightId', isAuthenticated, (req, res) => {
         }
 
         res.render('bookFlights', {
-            flight: results[0]
+            flight: results[0],
+            adults,
+            children
         });
 
     });
@@ -434,19 +451,66 @@ app.get('/flights/book/:flightId', isAuthenticated, (req, res) => {
 app.post('/flights/book/:flightId', isAuthenticated, (req, res) => {
 
     const flightId = req.params.flightId;
-    const { seat_preference } = req.body;
+    const {
+        seat_preference,
+        row_preference,
+        adults,
+        children
+    } = req.body;
 
-    if (!seat_preference) {
-        req.flash('error', 'Please select a seat preference.');
-        return res.redirect('/flights/book/' + flightId);
+    let adultsCount = 1;
+    let childrenCount = 0;
+    let validationError = '';
+
+    const parsedAdults = Number.parseInt(adults, 10);
+    if (Number.isInteger(parsedAdults) && parsedAdults >= 1 && parsedAdults <= 9) {
+        adultsCount = parsedAdults;
+    } else {
+        validationError = 'Adults must be a whole number between 1 and 9.';
+    }
+
+    const parsedChildren = Number.parseInt(children, 10);
+    if (Number.isInteger(parsedChildren) && parsedChildren >= 0 && parsedChildren <= 9) {
+        childrenCount = parsedChildren;
+    } else {
+        validationError = 'Children must be a whole number between 0 and 9.';
+    }
+
+    const validSeatPreferences = ['Window', 'Middle', 'Aisle'];
+    const validRowPreferences = ['Front', 'Middle', 'Back'];
+
+    if (!validSeatPreferences.includes(seat_preference)) {
+        validationError = 'Please select a valid seat preference.';
+    }
+
+    if (!validRowPreferences.includes(row_preference)) {
+        validationError = 'Please select a valid row preference.';
+    }
+
+    const totalTravellers = adultsCount + childrenCount;
+    if (totalTravellers > 9) {
+        const excess = totalTravellers - 9;
+        childrenCount = Math.max(0, childrenCount - excess);
+    }
+
+    if (validationError) {
+        req.flash('error', validationError);
+        return res.redirect('/flights/book/' + flightId + '?adults=' + adultsCount + '&children=' + childrenCount);
     }
 
     const sql = `
-        INSERT INTO flight_bookings (user_id, flight_id, seat_preference)
-        VALUES (?, ?, ?)
+        INSERT INTO flight_bookings (
+            user_id,
+            flight_id,
+            seat_preference,
+            row_preference,
+            adults,
+            children
+        )
+        VALUES (?, ?, ?, ?, ?, ?)
     `;
 
-    db.query(sql, [req.session.user.id, flightId, seat_preference], (err) => {
+    db.query(sql, [req.session.user.id, flightId, seat_preference, row_preference, adultsCount, childrenCount], (err) => {
 
         if (err) {
             console.log(err);
@@ -539,11 +603,11 @@ app.post('/bookings/:id/seat', isAuthenticated, (req, res) => {
 
     const sql = `
         UPDATE flight_bookings
-        SET seat_preference = ?
+        SET seat_preference = ?, row_preference = ?
         WHERE id = ? AND user_id = ?
     `;
 
-    db.query(sql, [seat_preference, id, req.session.user.id], (err) => {
+    db.query(sql, [seat_preference, req.body.row_preference, id, req.session.user.id], (err) => {
 
         if (err) {
             console.log(err);

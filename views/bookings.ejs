@@ -77,13 +77,23 @@
                     </td>
 
                     <td>
-                        <span class="badge bg-info text-dark">
-                            <%= booking.seat_preference %>
-                        </span>
+                        <div class="small">
+                            <div><strong>Seat Preference</strong><br><span class="badge bg-info text-dark"><%= booking.seat_preference || 'Not selected' %></span></div>
+                            <div class="mt-2"><strong>Preferred Row</strong><br><span class="badge bg-secondary"><%= booking.row_preference || 'Not selected' %></span></div>
+                        </div>
+                        <div class="small text-muted mt-2">
+                            Travellers: <%= Number(booking.adults) %> <%= Number(booking.adults) === 1 ? 'Adult' : 'Adults' %>,
+                            <%= Number(booking.children) %> <%= Number(booking.children) === 1 ? 'Child' : 'Children' %>
+                            <br>
+                            Total travellers: <%= Number(booking.adults) + Number(booking.children) %>
+                        </div>
                     </td>
 
                     <td class="fw-bold">
                         $<%= Number(booking.price).toFixed(2) %>
+                        <div class="small text-muted mt-2">
+                            Estimated total: $<%= (Number(booking.price) * (Number(booking.adults) + Number(booking.children))).toFixed(2) %>
+                        </div>
                     </td>
 
                     <td class="text-end pe-4">
