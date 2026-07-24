@@ -1,135 +1,27 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-
     <title>My Trips | VividVoyage</title>
-
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
-
     <style>
-
-        body{
-            background:#f4f7fb;
-        }
-
-        .hero-carousel{
-            border-radius:22px;
-            overflow:hidden;
-            box-shadow:0 18px 40px rgba(0,0,0,.15);
-        }
-
-        .carousel-item{
-            height:420px;
-        }
-
-        .carousel-item img{
-            width:100%;
-            height:420px;
-            object-fit:cover;
-        }
-
-        .carousel-caption{
-            left:8%;
-            right:auto;
-            bottom:22%;
-            text-align:left;
-        }
-
-        .carousel-caption h1{
-            font-size:3rem;
-            font-weight:700;
-        }
-
-        .carousel-caption p{
-            font-size:1.15rem;
-        }
-
-        .hero-btn{
-            margin-top:10px;
-            border-radius:30px;
-            padding:10px 24px;
-        }
-
-        .page-title{
-            font-weight:700;
-            color:#2563eb;
-            margin-bottom:5px;
-        }
-
-        .page-subtitle{
-            color:#6c757d;
-            margin-bottom:0;
-        }
-
-        .search-box{
-
-            border-radius:30px;
-
-            padding:14px 20px;
-
-            box-shadow:0 5px 18px rgba(0,0,0,.08);
-
-            border:none;
-
-        }
-
-        .trip-card{
-
-            transition:.3s;
-
-        }
-
-        .trip-card:hover{
-
-            transform:translateY(-8px);
-
-        }
-
-        .trip-card .card{
-
-            border:none;
-
-            border-radius:20px;
-
-            overflow:hidden;
-
-            box-shadow:0 8px 25px rgba(0,0,0,.08);
-
-            transition:.3s;
-
-        }
-
-        .trip-card .card:hover{
-
-            box-shadow:0 18px 40px rgba(0,0,0,.16);
-
-        }
-
-        .trip-icon{
-
-            font-size:3rem;
-
-        }
-
-        .trip-info{
-
-            color:#6c757d;
-
-            font-size:.95rem;
-
-        }
-
-        .btn-open{
-
-            border-radius:30px;
-
-            font-weight:600;
-
-        }
-
+        body{ background:#f4f7fb; }
+        .hero-carousel{ border-radius:22px; overflow:hidden; box-shadow:0 18px 40px rgba(0,0,0,.15); }
+        .carousel-item{ height:420px; }
+        .carousel-item img{ width:100%; height:420px; object-fit:cover; }
+        .carousel-caption{ left:8%; right:auto; bottom:22%; text-align:left; }
+        .carousel-caption h1{ font-size:3rem; font-weight:700; }
+        .carousel-caption p{ font-size:1.15rem; }
+        .page-title{ font-weight:700; color:#2563eb; margin-bottom:5px; }
+        .page-subtitle{ color:#6c757d; margin-bottom:0; }
+        .search-box{ border-radius:30px; padding:14px 20px; box-shadow:0 5px 18px rgba(0,0,0,.08); border:none; }
+        .trip-card{ transition:.3s; }
+        .trip-card:hover{ transform:translateY(-8px); }
+        .trip-card .card{ border:none; border-radius:20px; overflow:hidden; box-shadow:0 8px 25px rgba(0,0,0,.08); transition:.3s; }
+        .trip-card .card:hover{ box-shadow:0 18px 40px rgba(0,0,0,.16); }
+        .trip-icon{ font-size:3rem; }
+        .trip-info{ color:#6c757d; font-size:.95rem; }
+        .btn-open{ border-radius:30px; font-weight:600; }
     </style>
-
 </head>
 
 <body class="bg-light">
@@ -139,302 +31,115 @@
 <!-- Full Width Carousel -->
 <div class="container-fluid px-0" style="margin-top:85px;">
     <!-- HERO -->
-
-    <div id="tripCarousel"
-         class="carousel slide hero-carousel mb-5"
-         data-bs-ride="carousel">
-
+    <div id="tripCarousel" class="carousel slide hero-carousel mb-5" data-bs-ride="carousel">
         <div class="carousel-inner">
-
             <div class="carousel-item active">
-
-                <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1600"
-                     class="d-block w-100">
-
+                <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1600" class="d-block w-100">
                 <div class="carousel-caption">
-
                     <h1>Discover Your Next Adventure</h1>
-
                     <p>Create, organise and manage every journey in one place.</p>
-
-                    
-
                 </div>
-
             </div>
-
             <div class="carousel-item">
-
-                <img src="https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1600"
-                     class="d-block w-100">
-
+                <img src="https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=1600" class="d-block w-100">
                 <div class="carousel-caption">
-
                     <h1>Keep Every Destination</h1>
-
                     <p>Organise all your favourite places into separate trips.</p>
-
                 </div>
-
             </div>
-
             <div class="carousel-item">
-
-                <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1600"
-                     class="d-block w-100">
-
+                <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1600" class="d-block w-100">
                 <div class="carousel-caption">
-
                     <h1>Travel Smarter</h1>
-
                     <p>View your itinerary and stay on schedule.</p>
-
                 </div>
-
             </div>
-
         </div>
-
-        <button class="carousel-control-prev"
-                type="button"
-                data-bs-target="#tripCarousel"
-                data-bs-slide="prev">
-
+        <button class="carousel-control-prev" type="button" data-bs-target="#tripCarousel" data-bs-slide="prev">
             <span class="carousel-control-prev-icon"></span>
-
         </button>
-
-        <button class="carousel-control-next"
-                type="button"
-                data-bs-target="#tripCarousel"
-                data-bs-slide="next">
-
+        <button class="carousel-control-next" type="button" data-bs-target="#tripCarousel" data-bs-slide="next">
             <span class="carousel-control-next-icon"></span>
-
         </button>
-
     </div>
     
     <!-- TITLE -->
-
-    <div class="d-flex justify-content-between align-items-center mb-4">
-
+    <div class="d-flex justify-content-between align-items-center mb-4 px-4">
         <div>
-
-            <h2 class="page-title">
-
-                🌍 My Trips
-
-            </h2>
-
-            <p class="page-subtitle">
-
-                Manage all your travel adventures in one place.
-
-            </p>
-
+            <h2 class="page-title">🌍 My Trips</h2>
+            <p class="page-subtitle">Manage all your travel adventures in one place.</p>
         </div>
-
-        <a href="/trips/add"
-           class="btn btn-primary btn-lg rounded-pill px-4">
-
-            + New Trip
-
-        </a>
-
+        <a href="/trips/add" class="btn btn-primary btn-lg rounded-pill px-4">+ New Trip</a>
     </div>
 
     <!-- SEARCH -->
-
-    <div class="row mb-5">
-
+    <div class="row mb-5 px-4">
         <div class="col-lg-5">
-
-            <input
-
-                type="text"
-
-                id="tripSearch"
-
-                class="form-control form-control-lg search-box"
-
-                placeholder="🔍 Search your trips...">
-
+            <input type="text" id="tripSearch" class="form-control form-control-lg search-box" placeholder="🔍 Search your trips...">
         </div>
-
     </div>
 
     <!-- Cards -->
-
-<div class="row">
-
-<% if(trips.length===0){ %>
-
-    <div class="col-12">
-
-        <div class="card border-0 shadow text-center p-5 rounded-4">
-
-            <div style="font-size:70px;">🌍</div>
-
-            <h3 class="mt-3 fw-bold">
-
-                No Trips Yet
-
-            </h3>
-
-            <p class="text-muted">
-
-                Start planning your next adventure by creating your first trip.
-
-            </p>
-
-            <div class="mt-3">
-
-                <a href="/trips/add"
-                   class="btn btn-primary btn-lg rounded-pill px-4">
-
-                    + Create Your First Trip
-
-                </a>
-
-            </div>
-
-        </div>
-
-    </div>
-
-<% } %>
-
-<% trips.forEach(trip=>{ %>
-
-<div class="col-xl-4 col-lg-6 mb-4 trip-card">
-
-    <div class="card h-100">
-
-        <div class="card-body p-4">
-
-            <div class="d-flex justify-content-between align-items-start">
-
-                <div>
-
-                    <h3 class="fw-bold mb-1">
-
-                        ✈️ <%= trip.trip_name %>
-
-                    </h3>
-
-                    <div class="trip-info">
-
-                        Trip #<%= trip.id %>
-
+    <div class="row px-4">
+        <% if(trips.length===0){ %>
+            <div class="col-12">
+                <div class="card border-0 shadow text-center p-5 rounded-4">
+                    <div style="font-size:70px;">🌍</div>
+                    <h3 class="mt-3 fw-bold">No Trips Yet</h3>
+                    <p class="text-muted">Start planning your next adventure by creating your first trip.</p>
+                    <div class="mt-3">
+                        <a href="/trips/add" class="btn btn-primary btn-lg rounded-pill px-4">+ Create Your First Trip</a>
                     </div>
-
                 </div>
-
-                <div class="trip-icon">
-
-                    🧳
-
-                </div>
-
             </div>
+        <% } %>
 
-            <hr>
-
-            <div class="row text-center mb-4">
-
-                <div class="col-6">
-
-                    <h4 class="fw-bold text-primary mb-0">
-
-                        <%= trip.location_count || 0 %>
-
-                    </h4>
-
-                    <small class="text-muted">
-
-                        Locations
-
-                    </small>
-
+        <% trips.forEach(trip=>{ %>
+        <div class="col-xl-4 col-lg-6 mb-4 trip-card">
+            <div class="card h-100">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h3 class="fw-bold mb-1">✈️ <%= trip.trip_name %></h3>
+                            <div class="trip-info">Trip #<%= trip.id %></div>
+                        </div>
+                        <div class="trip-icon">🧳</div>
+                    </div>
+                    <hr>
+                    <div class="row text-center mb-4">
+                        <div class="col-6">
+                            <h4 class="fw-bold text-primary mb-0"><%= trip.location_count || 0 %></h4>
+                            <small class="text-muted">Locations</small>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="fw-bold text-success mb-0">Ready</h4>
+                            <small class="text-muted">Status</small>
+                        </div>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <a href="/trip/<%= trip.id %>" class="btn btn-success btn-lg btn-open">📍 Open Trip</a>
+                        <form action="/trip/delete/<%= trip.id %>" method="POST" onsubmit="return confirm('Delete this trip?');">
+                            <button class="btn btn-danger btn-lg w-100">🗑 Delete Trip</button>
+                        </form>
+                    </div>
                 </div>
-
-                <div class="col-6">
-
-                    <h4 class="fw-bold text-success mb-0">
-
-                        Ready
-
-                    </h4>
-
-                    <small class="text-muted">
-
-                        Status
-
-                    </small>
-
-                </div>
-
             </div>
-
-            <div class="d-grid gap-2">
-
-                <a
-                    href="/trip/<%= trip.id %>"
-                    class="btn btn-success btn-lg btn-open">
-
-                    📍 Open Trip
-
-                </a>
-
-
-                <form 
-                    action="/trip/delete/<%= trip.id %>"
-                    method="POST"
-                    onsubmit="return confirm('Delete this trip?');">
-
-                    <button class="btn btn-danger btn-lg">
-                        🗑 Delete Trip
-                    </button>
-
-                </form>
-
-            </div>
-
         </div>
-
+        <% }) %>
     </div>
-
-</div>
-
-<% }) %>
-
-</div>
-
 </div>
 
 <script>
-
 const search=document.getElementById("tripSearch");
-
 search.addEventListener("keyup",function(){
-
     const value=this.value.toLowerCase();
-
     document.querySelectorAll(".trip-card").forEach(card=>{
-
         const text=card.innerText.toLowerCase();
-
         card.style.display=text.includes(value)?"block":"none";
-
     });
-
 });
-
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
-
 </body>
-
 </html>

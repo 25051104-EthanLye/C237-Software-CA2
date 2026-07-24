@@ -14,7 +14,7 @@
 
     body {
         font-family: 'Nunito', sans-serif;
-        background-color: #f8fbfb; /* Very soft tint to make white cards pop */
+        background-color: #f8fbfb; 
         margin: 0;
         padding: 0;
     }
@@ -39,7 +39,7 @@
         height: fit-content;
         display: flex;
         flex-direction: column;
-        align-items: center; /* Center children horizontally */
+        align-items: center; 
     }
 
     .profile-greeting {
@@ -125,7 +125,7 @@
         font-size: 14px;
         font-weight: 800;
         cursor: pointer;
-        text-decoration: none; /* For standard anchor tags */
+        text-decoration: none; 
         transition: opacity 0.3s;
         margin-top: 15px;
         width: fit-content;
@@ -253,7 +253,6 @@
             
             <!-- DYNAMIC IMAGE LOGIC -->
             <% if (userData.profile_picture) { %>
-                <!-- Removed /uploads/ prefix so it successfully renders the database Base64 text -->
                 <img src="<%= userData.profile_picture %>" id="profilePicPreview" alt="Profile Picture">
             <% } else { %>
                 <img src="https://ui-avatars.com/api/?name=<%= userData.username %>&background=99BDBC&color=fff&size=150" id="profilePicPreview" alt="Default Avatar">
@@ -262,7 +261,6 @@
             <!-- UPLOAD FORM -->
             <form id="uploadForm" action="/profile/upload-picture" method="POST" enctype="multipart/form-data">
                 <label for="profileUpload" class="image-upload-btn" title="Upload New Picture">📷</label>
-                <!-- Name must exactly match "upload.single('profile_picture')" in app.js -->
                 <input type="file" id="profileUpload" name="profile_picture" style="display: none;" accept="image/*">
             </form>
 
@@ -297,28 +295,39 @@
     <!-- Main Content: Forms & Itinerary -->
     <div class="profile-main">
         
-        <!-- Quick Itinerary Actions -->
+        <!-- Travel Itineraries -->
         <div class="profile-card">
             <h2>Your Travel Itineraries</h2>
             <p style="color: var(--cadet-grey); font-weight: 600; margin-bottom: 20px;">Manage your holidays or start planning a fresh adventure.</p>
             <div class="itinerary-actions">
-                <a href="/trips" class="btn-itinerary">View My Itinerary</a>
+                <a href="/trips" class="btn-itinerary">View My Itineraries</a>
                 <a href="/trips/add" class="btn-itinerary create">✨ Create Itinerary</a>
             </div>
         </div>
 
-        <!-- Flight Booking Actions -->
+        <!-- NEW: Dedicated Flight Bookings Card -->
         <div class="profile-card">
             <h2>Your Flight Bookings</h2>
             <p style="color: var(--cadet-grey); font-weight: 600; margin-bottom: 20px;">
-            View your flight bookings or book your next adventure.
-         </p>
+                View your scheduled flight bookings or plan your next journey.
+            </p>
+            <div class="itinerary-actions">
+                <a href="/bookings" class="btn-itinerary">✈️ View Bookings</a>
+                <a href="/flights" class="btn-itinerary create">🔍 Browse Flights</a>
+            </div>
+        </div>
 
-        <div class="itinerary-actions">
-        <a href="/bookings" class="btn-itinerary">✈️ View My Bookings</a>
-        <a href="/flights" class="btn-itinerary create">🔍 Browse Flights</a>
-    </div>
-</div>
+        <!-- NEW: Dedicated Hotel Reservations Card -->
+        <div class="profile-card">
+            <h2>Your Hotel Reservations</h2>
+            <p style="color: var(--cadet-grey); font-weight: 600; margin-bottom: 20px;">
+                Manage your upcoming hotel stays or find a new place to relax.
+            </p>
+            <div class="itinerary-actions">
+                <a href="/reservations" class="btn-itinerary">🏨 View Reservations</a>
+                <a href="/hotels" class="btn-itinerary create">🔍 Browse Hotels</a>
+            </div>
+        </div>
 
         <!-- Edit Profile Details -->
         <div class="profile-card">

@@ -47,6 +47,9 @@ const upload = multer({ storage: storage });
 // --- GLOBAL VARIABLES MIDDLEWARE ---
 app.use((req, res, next) => {
     res.locals.user = req.session.user || null;
+    res.locals.userData = req.session.user || null; 
+    // FIX: Global safety net so "messages is not defined" NEVER crashes the app again
+    res.locals.messages = {}; 
     next();
 });
 
@@ -339,7 +342,6 @@ app.get('/search', (req, res) => {
     const destination = req.query.to || '';
 
     if (type === 'hotel') {
-        // FIX: Search BOTH the hotel 'name' and the 'location' columns!
         const hotelSql = 'SELECT * FROM hotels WHERE name LIKE ? OR location LIKE ?';
         const searchParam = `%${destination}%`;
 
