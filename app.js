@@ -158,6 +158,12 @@ app.post('/login', (req, res) => {
         if (err) throw err;
         
         if (results.length > 0) {
+            // ARVIN: block suspended accounts from logging in
+            if (results[0].account_status === 'suspended') {
+                req.flash('error', 'Your account has been suspended. Please contact support.');
+                return req.session.save(() => res.redirect(targetUrl));
+            }
+
             req.session.user = results[0]; 
             req.session.save(() => res.redirect(targetUrl)); 
         } else {
@@ -1205,7 +1211,7 @@ app.get('/admin/hotels', isAdmin, (req, res) => {
 });
 
 // ADD INVENTORY: insert a new hotel
-app.post('/admin/hotels/add', isAdmin, (req, res) => {
+app.post('/admin/hotels/add', isAdmin, upload.single('image'), (req, res) => {
     const { name, location, price_per_night } = req.body;
 
     if (!name || !location || !price_per_night) {
@@ -1213,9 +1219,14 @@ app.post('/admin/hotels/add', isAdmin, (req, res) => {
         return res.redirect('/admin/hotels');
     }
 
-    const sql = 'INSERT INTO hotels (name, location, price_per_night) VALUES (?, ?, ?)';
+    let imageUri = null;
+    if (req.file) {
+        imageUri = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+    }
 
-    db.query(sql, [name, location, price_per_night], (err) => {
+    const sql = 'INSERT INTO hotels (name, location, price_per_night, image) VALUES (?, ?, ?, ?)';
+
+ db.query(sql, [name, location, price_per_night, imageUri], (err) => {
         if (err) { console.log(err); return res.send("Database Error"); }
 
         req.flash('success', `Hotel "${name}" added to inventory.`);
@@ -1398,7 +1409,7 @@ app.get('/admin/users', isAdmin, (req, res) => {
 
 // BAN: block a user from logging in
 app.post('/admin/users/ban/:id', isAdmin, (req, res) => {
-    const sql = "UPDATE users SET account_status = 'banned' WHERE id = ?";
+    const sql = "UPDATE users SET account_status = 'suspended' WHERE id = ?";
 
     db.query(sql, [req.params.id], (err) => {
         if (err) { console.log(err); return res.send("Database Error"); }
