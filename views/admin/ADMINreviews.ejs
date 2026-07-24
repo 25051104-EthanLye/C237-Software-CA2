@@ -56,9 +56,9 @@
                                     <tr>
                                         <td>#<%= r.id %></td>
                                         <td><%= r.username || 'Unknown user' %></td>
-                                        <td><%= r.destination %></td>
+                                        <td><%= r.target_destination %></td>
                                         <td class="stars"><%= '★'.repeat(r.rating) %><span style="color:#ddd;"><%= '★'.repeat(5 - r.rating) %></span></td>
-                                        <td><%= r.text %></td>
+                                        <td><%= r.comment %></td>
                                         <td class="text-end">
                                             <form action="/admin/reviews/delete/<%= r.id %>" method="POST" onsubmit="return confirm('Remove this review?');">
                                                 <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>

@@ -158,6 +158,12 @@ app.post('/login', (req, res) => {
         if (err) throw err;
         
         if (results.length > 0) {
+            // ARVIN: block suspended accounts from logging in
+            if (results[0].account_status === 'suspended') {
+                req.flash('error', 'Your account has been suspended. Please contact support.');
+                return req.session.save(() => res.redirect(targetUrl));
+            }
+
             req.session.user = results[0]; 
             req.session.save(() => res.redirect(targetUrl)); 
         } else {
@@ -643,7 +649,7 @@ app.post('/hotels/book/:hotelId', isAuthenticated, (req, res) => {
 
 // H4. VIEW RESERVATIONS (Read) — joined with hotels for name/location/price
 app.get('/reservations', isAuthenticated, (req, res) => {
-    const sql = `SELECT hotel_reservations.*, hotels.name, hotels.location, hotels.price_per_night
+    const sql = `SELECT hotel_reservations.*, hotels.name, hotels.location, hotels.price_per_night, hotels.image
                  FROM hotel_reservations
                  JOIN hotels ON hotel_reservations.hotel_id = hotels.id
                  WHERE hotel_reservations.user_id = ?
@@ -656,7 +662,7 @@ app.get('/reservations', isAuthenticated, (req, res) => {
 
 // H5. CHANGE ROOM — SHOW FORM (Update)
 app.get('/reservations/:id/room', isAuthenticated, (req, res) => {
-    const sql = `SELECT hotel_reservations.*, hotels.name, hotels.location
+    const sql = `SELECT hotel_reservations.*, hotels.name, hotels.location, hotels.image
                  FROM hotel_reservations
                  JOIN hotels ON hotel_reservations.hotel_id = hotels.id
                  WHERE hotel_reservations.id = ? AND hotel_reservations.user_id = ?`;
@@ -1205,7 +1211,7 @@ app.get('/admin/hotels', isAdmin, (req, res) => {
 });
 
 // ADD INVENTORY: insert a new hotel
-app.post('/admin/hotels/add', isAdmin, (req, res) => {
+app.post('/admin/hotels/add', isAdmin, upload.single('image'), (req, res) => {
     const { name, location, price_per_night } = req.body;
 
     if (!name || !location || !price_per_night) {
@@ -1213,9 +1219,14 @@ app.post('/admin/hotels/add', isAdmin, (req, res) => {
         return res.redirect('/admin/hotels');
     }
 
-    const sql = 'INSERT INTO hotels (name, location, price_per_night) VALUES (?, ?, ?)';
+    let imageUri = null;
+    if (req.file) {
+        imageUri = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+    }
 
-    db.query(sql, [name, location, price_per_night], (err) => {
+    const sql = 'INSERT INTO hotels (name, location, price_per_night, image) VALUES (?, ?, ?, ?)';
+
+ db.query(sql, [name, location, price_per_night, imageUri], (err) => {
         if (err) { console.log(err); return res.send("Database Error"); }
 
         req.flash('success', `Hotel "${name}" added to inventory.`);
@@ -1275,9 +1286,20 @@ app.get('/admin/hotels/edit/:id', isAdmin, (req, res) => {
     });
 });
 
-// EDIT (Save): update the hotel with the submitted changes
-app.post('/admin/hotels/edit/:id', isAdmin, (req, res) => {
+// EDIT (Save): update the hotel with the submitted changes (with optional new photo)
+app.post('/admin/hotels/edit/:id', isAdmin, upload.single('image'), (req, res) => {
     const { name, location, price_per_night } = req.body;
+
+    if (req.file) {
+        const imageUri = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+        const sqlWithImage = 'UPDATE hotels SET name = ?, location = ?, price_per_night = ?, image = ? WHERE id = ?';
+
+        return db.query(sqlWithImage, [name, location, price_per_night, imageUri, req.params.id], (err) => {
+            if (err) { console.log(err); return res.send("Database Error"); }
+            req.flash('success', `Hotel "${name}" updated.`);
+            res.redirect('/admin/hotels');
+        });
+    }
 
     const sql = 'UPDATE hotels SET name = ?, location = ?, price_per_night = ? WHERE id = ?';
 
@@ -1398,7 +1420,7 @@ app.get('/admin/users', isAdmin, (req, res) => {
 
 // BAN: block a user from logging in
 app.post('/admin/users/ban/:id', isAdmin, (req, res) => {
-    const sql = "UPDATE users SET account_status = 'banned' WHERE id = ?";
+    const sql = "UPDATE users SET account_status = 'suspended' WHERE id = ?";
 
     db.query(sql, [req.params.id], (err) => {
         if (err) { console.log(err); return res.send("Database Error"); }
