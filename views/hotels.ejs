@@ -109,7 +109,7 @@
             <% hotels.forEach((hotel, i) => { %>
                 <div class="col-md-6 col-lg-4">
                     <div class="hotel-card">
-                        <div class="hotel-cover" style="background-image: url('<%= covers[i % covers.length] %>');">
+                        <div class="hotel-cover" style="background-image: url('<%= hotel.image ? hotel.image : covers[i % covers.length] %>');">
                             <span class="hotel-price-badge">$<%= Number(hotel.price_per_night).toFixed(0) %> <span>/ night</span></span>
                         </div>
                         <div class="hotel-body">
